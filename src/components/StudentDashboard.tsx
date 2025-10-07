@@ -1,52 +1,25 @@
 import { useEffect, useState } from "react";
-import supabase from "../config/supabaseClient";
-import { useNavigate } from "react-router";
 // import { useMultistepForm } from "../useMultistepForm";
 import Details from "./form/Details";
 import Participants from "./form/Participants";
 import { MantineProvider, Stepper } from "@mantine/core";
 import { TbClipboardText, TbUsersGroup, TbCheckupList } from "react-icons/tb";
+import { useGetIdentity, useLogout } from "@refinedev/core";
 
 export const StudentDashboard = () => {
   // Fetch User
-  const [user, setUser] = useState("");
+  const [loggedInUser, setLoggedInUser] = useState("");
+  const { data, isLoading } = useGetIdentity();
 
-  const getUser = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    setUser(user ? user.user_metadata?.full_name : "Loading user...");
-  };
-  getUser();
-
-  const navigate = useNavigate();
-
-  // Sign out - Trigger once user logs out
   useEffect(() => {
-    const { data: subscription } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_OUT") {
-        // Clear local and session storage
-        [window.localStorage, window.sessionStorage].forEach((storage) => {
-          Object.entries(storage).forEach(([key]) => {
-            storage.removeItem(key);
-          });
-        });
-        navigate("/");
-      }
-    });
+    if (!isLoading && data) {
+      setLoggedInUser(data?.user.user_metadata?.full_name ?? "Unnamed user...");
+    }
+  }, [data, isLoading]);
 
-    return () => {
-      subscription.subscription.unsubscribe();
-    };
-  }, [navigate]);
+  console.log("Rendered with:", loggedInUser);
 
-  // Handle sign out
-  const handleLogOut = async () => {
-    const { error } = await supabase.auth.signOut();
-
-    if (error) console.error("Error:", error.message);
-  };
+  const { mutate: logout, isPending } = useLogout();
 
   // Stepper
   const [active, setActive] = useState(0);
@@ -94,10 +67,11 @@ export const StudentDashboard = () => {
       >
         <div className="bg-[#D1E2EB]">
           <nav className="p-6 flex justify-between absolute w-full">
-            {user}
+            {loggedInUser}
             <button
+              disabled={isPending}
               className="relative text-red-400 cursor-pointer before:content-[''] before:absolute before:bottom-[-2px] before:bg-red-400 before:h-[2px] before:w-0 hover:before:w-full before:transition-all duration-500"
-              onClick={handleLogOut}
+              onClick={() => logout()}
             >
               Sign out
             </button>

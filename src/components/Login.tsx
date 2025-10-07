@@ -1,53 +1,9 @@
-import { useEffect } from "react";
+import { useLogin } from "@refinedev/core";
 import Header from "../assets/images/Header.png";
 import googleLogo from "../assets/images/google-logo.png";
-import supabase from "../config/supabaseClient";
-import { useNavigate } from "react-router";
 
 export const Login = () => {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const checkUser = async () => {
-      // Shorthand
-      // const {
-      //   data: { session },
-      // } = await supabase.auth.getSession();
-
-      const result = await supabase.auth.getSession();
-      const session = result.data.session;
-
-      const userId = session?.user.id;
-
-      if (session) {
-        const { data, error } = await supabase
-          .from("users")
-          .select("role")
-          .eq("id", userId)
-          .single();
-
-        if (error) console.error("An error occurred:", error.message);
-
-        if (data?.role === "student") {
-          navigate("/student-dashboard");
-        } else {
-          navigate("/admin-dashboard");
-        }
-      }
-    };
-
-    checkUser();
-  }, [navigate]);
-
-  const handleLogin = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-    });
-
-    if (error) console.error("Login Error: ", error.message);
-  };
+  const { mutate: login, isPending } = useLogin();
 
   return (
     <div className="w-full h-dvh bg-[#D1E2EB] flex flex-col justify-center items-center px-4">
@@ -60,7 +16,8 @@ export const Login = () => {
         {/* Google Sign In */}
         <div className="flex flex-col gap-4">
           <button
-            onClick={handleLogin}
+            disabled={isPending}
+            onClick={() => login({})}
             className="flex items-center gap-4 justify-center border-[var(--primary)] border cursor-pointer rounded-[8px] p-3 transition duration-200 hover:bg-[var(--primary)] text-[var(--primary)] hover:text-white"
             // className="flex items-center gap-4 justify-center border-[var(--primary)] border cursor-pointer rounded-[8px] p-3 transition duration-200 hover:bg-[rgba(7,48,102,0.1)] text-[var(--primary)]"
           >

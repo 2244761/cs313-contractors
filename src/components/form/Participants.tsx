@@ -1,5 +1,5 @@
 import { MantineProvider, TagsInput, TextInput } from "@mantine/core";
-import React, { useState } from "react";
+import { useState } from "react";
 import { FaPlusSquare } from "react-icons/fa";
 
 const Participants = () => {

@@ -17,7 +17,9 @@ export const Login = () => {
         <div className="flex flex-col gap-4">
           <button
             disabled={isPending}
-            onClick={() => login({})}
+            onClick={() => {
+              login({});
+            }}
             className="flex items-center gap-4 justify-center border-[var(--primary)] border cursor-pointer rounded-[8px] p-3 transition duration-200 hover:bg-[var(--primary)] text-[var(--primary)] hover:text-white"
             // className="flex items-center gap-4 justify-center border-[var(--primary)] border cursor-pointer rounded-[8px] p-3 transition duration-200 hover:bg-[rgba(7,48,102,0.1)] text-[var(--primary)]"
           >

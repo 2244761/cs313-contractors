@@ -31,9 +31,9 @@ const RoleRedirect = () => {
     fetchUser();
   }, [data, isLoading]);
 
-  if (isLoading) return <div>Loading...</div>;
+  // if (isLoading) return <div>Loading...</div>;
   if (!data) return <Navigate to="/login" replace />;
-  if (!role) return <div>Loading role...</div>;
+  if (!role) return <div>Loading...</div>;
 
   // if (role === "student") {
   //   return <Navigate to="/student-dashboard" replace />;

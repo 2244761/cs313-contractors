@@ -8,7 +8,7 @@ import {
 } from "react-router-dom";
 
 // Refine Imports
-import { Authenticated, Refine } from "@refinedev/core";
+import { Authenticated, Refine, ErrorComponent } from "@refinedev/core";
 import { dataProvider, liveProvider } from "@refinedev/supabase";
 import routerProvider, {
   CatchAllNavigate,
@@ -26,8 +26,10 @@ import { Login } from "./components/Login";
 import { StudentDashboard } from "./components/StudentDashboard";
 import { AdminDashboard } from "./components/AdminDashboard";
 import RoleRedirect from "./RoleRedirect";
-// import { Login } from "./components/parts/Login";
-// import { Register } from "./components/parts/Register";
+import { Layout } from "./components/layout";
+
+// Pages
+import { UserList } from "./pages/users";
 
 function App() {
   return (
@@ -39,6 +41,14 @@ function App() {
             liveProvider={liveProvider(supabaseClient)}
             routerProvider={routerProvider}
             authProvider={authProvider}
+            resources={[
+              {
+                name: "calendar",
+                list: "/calendar",
+              },
+              { name: "reservations", list: "/reservations" },
+              { name: "users", list: "/users" },
+            ]}
             options={{
               syncWithLocation: true,
               warnWhenUnsavedChanges: true,
@@ -51,7 +61,9 @@ function App() {
                     key="authenticated-inner"
                     fallback={<CatchAllNavigate to="/login" />}
                   >
-                    <Outlet />
+                    <Layout>
+                      <Outlet />
+                    </Layout>
                   </Authenticated>
                 }
               >
@@ -61,15 +73,22 @@ function App() {
                   element={<StudentDashboard />}
                 />
                 <Route path="/admin-dashboard" element={<AdminDashboard />} />
+                <Route path="/users">
+                  <Route index element={<UserList />}></Route>
+                </Route>
+                <Route path="*" element={<ErrorComponent />} />
               </Route>
               <Route
                 element={
-                  <Authenticated key="authenticated-outer" fallback={<Login />}>
+                  <Authenticated
+                    key="authenticated-outer"
+                    fallback={<Outlet />}
+                  >
                     <Navigate to="/" replace />
                   </Authenticated>
                 }
               >
-                <Route path="/login" element={<Outlet />} />
+                <Route path="/login" element={<Login />} />
               </Route>
             </Routes>
 

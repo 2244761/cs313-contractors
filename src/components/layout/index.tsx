@@ -1,12 +1,9 @@
 import React, { type PropsWithChildren } from "react";
 import { Menu } from "../menu";
 import { Breadcrumb } from "../breadcrumb";
-
-import { useLogout } from "@refinedev/core";
+import { UserInfo } from "../userinfo";
 
 export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
-  const { mutate: logout, isPending } = useLogout();
-
   return (
     <>
       <div className="flex gap-6 w-full h-dvh bg-[#EEEEEE]">
@@ -14,15 +11,9 @@ export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
           <Menu />
         </div>
         <div className="content w-full p-8 flex flex-col gap-8">
-          <div className="flex justify-between w-full">
+          <div className="flex justify-between w-full items-center">
             <Breadcrumb />
-            <button
-              disabled={isPending}
-              onClick={() => logout()}
-              className="cursor-pointer inline-block bg-[var(--dark-primary)] w-fit p-2 px-8 rounded text-white"
-            >
-              Sign Out
-            </button>
+            <UserInfo />
           </div>
 
           <div>{children}</div>

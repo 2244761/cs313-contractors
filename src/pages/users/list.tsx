@@ -2,7 +2,7 @@ import { useList } from "@refinedev/core";
 
 export const UserList: React.FC = () => {
   const { query, result } = useList({
-    resource: "users",
+    resource: "user",
   });
 
   const users = result.data ?? [];
@@ -16,27 +16,20 @@ export const UserList: React.FC = () => {
         <thead>
           <tr>
             <th>ID</th>
-            <th>Full Name</th>
-            <th>Email</th>
-            <th>Role</th>
             <th>Student Number</th>
-            {/* <th>Banned</th> */}
+            <th>Type</th>
           </tr>
         </thead>
         <tbody>
           {users.map((user) => (
             <tr className="border-b border-[var(--ui-border)]">
               <td className="py-2 ">{user.id}</td>
-              <td className="py-2">{user.full_name}</td>
-              <td className="py-2">{user.email}</td>
-              <td className="py-2">{user.role}</td>
               <td className="py-2">{user.student_id ?? "Not Applicable"}</td>
-              {/* <td>{user.is_banned}</td> */}
+              <td className="py-2">{user.type}</td>
             </tr>
           ))}
         </tbody>
       </table>
-      {/* <ul className="flex flex-col gap-5"></ul> */}
     </div>
   );
 };

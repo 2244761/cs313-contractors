@@ -47,6 +47,7 @@ function App() {
                 list: "/calendar",
               },
               { name: "reservations", list: "/reservations" },
+              { name: "rooms", list: "/rooms" },
               { name: "users", list: "/users" },
             ]}
             options={{

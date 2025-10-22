@@ -19,7 +19,7 @@ const RoleRedirect = () => {
       if (data) {
         const userId = data.user?.id ?? "";
         const { data: userData, error } = await supabase
-          .from("users")
+          .from("user")
           .select("role")
           .eq("id", userId)
           .single();

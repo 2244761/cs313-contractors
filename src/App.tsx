@@ -47,8 +47,11 @@ function App() {
                 list: "/calendar",
               },
               { name: "reservations", list: "/reservations" },
+              { name: "history", list: "/history" },
               { name: "rooms", list: "/rooms" },
               { name: "users", list: "/users" },
+              { name: "announcement", list: "/announcement" },
+              { name: "inbox", list: "/inbox" },
             ]}
             options={{
               syncWithLocation: true,

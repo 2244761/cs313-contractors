@@ -52,7 +52,7 @@ export const Menu = () => {
   return (
     <>
       <nav
-        className={`flex flex-col bg-white h-dvh p-4 justify-between duration-250  ${
+        className={`flex flex-col bg-white h-dvh p-4 justify-between duration-200  ${
           isOpen ? tw.sidebar : tw.sidebarOpen
         }`}
       >
@@ -75,7 +75,7 @@ export const Menu = () => {
               className="w-12 flex-shrink-0"
             />
             <h2
-              className={` transition-all duration-100 ${
+              className={` transition-all duration-150 ${
                 isOpen ? "opacity-100" : "opacity-0"
               }`}
             >
@@ -98,7 +98,7 @@ export const Menu = () => {
                     {item.icon && <item.icon size={"1.25rem"} />}
                   </div>
                   <span
-                    className={`transition-all duration-200 ${
+                    className={`transition-all duration-150 ${
                       isOpen ? "opacity-100" : "opacity-0"
                     }`}
                   >

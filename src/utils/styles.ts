@@ -1,5 +1,5 @@
 export const tw = {
-  sidebar: "w-48",
+  sidebar: "w-54",
   sidebarOpen: "w-20",
   isActiveTab:
     "bg-[var(--primary)] text-[var(--primary-white)] hover:bg-[#0A47A3]",

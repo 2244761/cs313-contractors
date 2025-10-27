@@ -1,8 +1,14 @@
 import { MantineProvider, TagsInput, TextInput } from "@mantine/core";
-import { useState } from "react";
+import { useImperativeHandle, forwardRef, useState } from "react";
 import { FaPlusSquare } from "react-icons/fa";
 
-const Participants = () => {
+const Participants = forwardRef((props, ref) => {
+  const [equipment, setEquipment] = useState<string[]>([]);
+
+  const [errors, setErrors] = useState({
+    equipment: false,
+  });
+
   const [participants, setParticipants] = useState([
     <TextInput placeholder="Enter Name" />,
   ]);
@@ -11,6 +17,20 @@ const Participants = () => {
 
     setParticipants([...participants, newField]);
   };
+
+  const validateForm = () => {
+    const newErrors = {
+      equipment: equipment.length === 0, // Handling empty fields in form
+    };
+    setErrors(newErrors);
+    return !Object.values(newErrors).includes(true);
+  };
+
+
+    useImperativeHandle(ref, () => ({
+      validateAndProceed: validateForm, 
+    }));
+
   return (
     <MantineProvider>
       <div className="flex flex-col gap-4">
@@ -40,14 +60,17 @@ const Participants = () => {
               "Projector",
               "Extension Cord",
               "HDMI Cable",
-              "Arduino",
+              "Arduino",  
             ]}
+            value={equipment}
+            onChange={setEquipment}
+            error={errors.equipment ? "Please list any equipment you plan to bring" : undefined}
           />
         </div>
       </div>
     </MantineProvider>
   );
-};
+});
 
 export default Participants;
 

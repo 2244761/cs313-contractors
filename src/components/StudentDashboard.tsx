@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 // import { useMultistepForm } from "../useMultistepForm";
 import Details from "./form/Details";
 import Participants from "./form/Participants";
@@ -23,8 +23,20 @@ export const StudentDashboard = () => {
 
   // Stepper
   const [active, setActive] = useState(0);
-  const nextStep = () =>
-    setActive((current) => (current < 3 ? current + 1 : current));
+  const detailsFormRef = useRef<any>(null); 
+  const participantsFormRef = useRef<any>(null); 
+  const handleNextStep = () => { // Handles the next button, calls validation in child page 
+    let isValid = true; 
+    if (active === 0) {
+      isValid = detailsFormRef.current && detailsFormRef.current.validateAndProceed();
+    } else if (active === 1) {
+      isValid = participantsFormRef.current && participantsFormRef.current.validateAndProceed();
+    } 
+  
+    if (isValid) {
+      setActive((current) => (current < 3 ? current + 1 : current));
+    }
+  };
   const prevStep = () =>
     setActive((current) => (current > 0 ? current - 1 : current));
   return (
@@ -95,13 +107,13 @@ export const StudentDashboard = () => {
                   label="Details"
                   icon={<TbClipboardText size={24} />}
                 >
-                  <Details />
+                  <Details ref={detailsFormRef}/>
                 </Stepper.Step>
                 <Stepper.Step
                   label="Participants"
                   icon={<TbUsersGroup size={24} />}
                 >
-                  <Participants />
+                  <Participants ref={participantsFormRef}/>
                 </Stepper.Step>
                 <Stepper.Step label="Review" icon={<TbCheckupList size={24} />}>
                   <h1>Review</h1>
@@ -116,7 +128,7 @@ export const StudentDashboard = () => {
                   Back
                 </button>
                 <button
-                  onClick={nextStep}
+                  onClick={handleNextStep}
                   className="py-2 px-12 bg-[var(--primary)] text-[var(--primary-white)] rounded-sm cursor-pointer hover:bg-[var(--primary-hover)] duration-200"
                 >
                   Next

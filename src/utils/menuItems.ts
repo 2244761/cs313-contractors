@@ -65,8 +65,7 @@ export const getMenuItems = (type: string): MenuItem[] => {
         {
           label: "Dashboard",
           // ! Fix proper routing
-          to: "",
-          // to: "/student-dashboard",
+          to: "/student-dashboard",
           icon: MdOutlineDashboard,
         },
         { label: "Calendar", to: "/calendar", icon: FaRegCalendar },

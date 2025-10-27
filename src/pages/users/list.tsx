@@ -9,6 +9,8 @@ import { SearchBar } from "../../components/searchbar/index";
 import { useState } from "react";
 
 export const UserList: React.FC = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+
   // Dropdown
   const [isOpen, setIsOpen] = useState<string | null>(null);
 
@@ -28,9 +30,18 @@ export const UserList: React.FC = () => {
 
   const gridColumns = "grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr]";
 
+  // Search Query
+  const filteredUsers = users.filter(
+    (user) =>
+      user.type !== "ADMIN" &&
+      (user.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.identifier?.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
   return (
     <div className="rounded-lg p-6 bg-white">
-      <SearchBar />
+      <SearchBar query={searchQuery} setQuery={setSearchQuery} />
       <table className="w-full text-left">
         <thead>
           <tr className={`grid ${gridColumns} items-center py-4 `}>
@@ -44,59 +55,52 @@ export const UserList: React.FC = () => {
         </thead>
         <hr />
         <tbody>
-          {users
-            .filter((user) => user.type !== "ADMIN")
-            .map((user, index, filteredUsers) => (
-              <>
-                <tr
-                  key={user.id}
-                  className={`grid items-center ${gridColumns}`}
-                >
-                  <td className="py-3 flex items-center gap-2">
-                    {user.avatar_url ? (
-                      <img
-                        src={user.avatar_url}
-                        onError={(e) =>
-                          (e.currentTarget.style.display = "none")
-                        }
-                        alt={`${user.full_name}'s avatar`}
-                        referrerPolicy="no-referrer"
-                        className="w-8 rounded-full"
-                      />
-                    ) : (
-                      // Fallback if the user does not have any avatar_url
-                      <IoPersonCircleOutline size={"2rem"} />
-                    )}
-                    <span>{user.full_name}</span>
-                  </td>
-                  <td className="py-2 ">{user.type}</td>
-                  <td className="py-2">{user.identifier}</td>
-                  <td className="py-2">{user.email}</td>
-                  <td className="py-2">
-                    <div
-                      className={`p-1.5 px-4 w-fit ${
-                        user.is_suspended === false
-                          ? tw.isNotSuspended
-                          : tw.isSuspended
-                      }`}
-                    >
-                      {user.is_suspended === false ? "Active" : "Suspended"}
-                    </div>
-                  </td>
-                  <td className="py-2">
-                    <Dropdown
-                      userId={String(user?.id)}
-                      userStatus={user.is_suspended}
-                      isOpen={isOpen === user.id}
-                      onToggle={toggleDropdown}
+          {filteredUsers.map((user, index) => (
+            <>
+              <tr key={user.id} className={`grid items-center ${gridColumns}`}>
+                <td className="py-3 flex items-center gap-2">
+                  {user.avatar_url ? (
+                    <img
+                      src={user.avatar_url}
+                      onError={(e) => (e.currentTarget.style.display = "none")}
+                      alt={`${user.full_name}'s avatar`}
+                      referrerPolicy="no-referrer"
+                      className="w-8 rounded-full"
                     />
-                  </td>
-                </tr>
-                {index !== filteredUsers.length - 1 && (
-                  <hr className="border-[var(--ui-border)]" />
-                )}
-              </>
-            ))}
+                  ) : (
+                    // Fallback if the user does not have any avatar_url
+                    <IoPersonCircleOutline size={"2rem"} />
+                  )}
+                  <span>{user.full_name}</span>
+                </td>
+                <td className="py-2 ">{user.type}</td>
+                <td className="py-2">{user.identifier}</td>
+                <td className="py-2">{user.email}</td>
+                <td className="py-2">
+                  <div
+                    className={`p-1.5 px-4 w-fit ${
+                      user.is_suspended === false
+                        ? tw.isNotSuspended
+                        : tw.isSuspended
+                    }`}
+                  >
+                    {user.is_suspended === false ? "Active" : "Suspended"}
+                  </div>
+                </td>
+                <td className="py-2">
+                  <Dropdown
+                    userId={String(user?.id)}
+                    userStatus={user.is_suspended}
+                    isOpen={isOpen === user.id}
+                    onToggle={toggleDropdown}
+                  />
+                </td>
+              </tr>
+              {index !== filteredUsers.length - 1 && (
+                <hr className="border-[var(--ui-border)]" />
+              )}
+            </>
+          ))}
         </tbody>
       </table>
     </div>

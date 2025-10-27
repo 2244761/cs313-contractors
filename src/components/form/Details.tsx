@@ -1,27 +1,30 @@
+import { useImperativeHandle, useState, forwardRef } from "react";
 import {
   DatePickerInput,
+  type DatePickerValue,
   getTimeRange,
-  // MiniCalendar,
   TimePicker,
 } from "@mantine/dates";
 import { MantineProvider, Select } from "@mantine/core";
-import { useState } from "react";
 import { TbCalendar } from "react-icons/tb";
 import dayjs from "dayjs";
 
-const DetailsForm = () => {
-  const date = new Date();
-  const options = {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  } as const;
+const Details = forwardRef((props, ref) => {
+  const [room, setRoom] = useState("");
+  const [purpose, setPurpose] = useState("");
+  const [date, setDate] = useState<Date | null>(null);
+  const [startTime, setStartTime] = useState<string | undefined>();
+  const [endTime, setEndTime] = useState<string | undefined>();
+  const [advisor, setAdvisor] = useState("");
 
-  const formatter = new Intl.DateTimeFormat("en-US", options);
-  const formattedDate = formatter.format(date);
-
-  const [startTime, setStartTime] = useState<string | undefined>(undefined);
-  const [endTime, setEndTime] = useState<string | undefined>(undefined);
+  const [errors, setErrors] = useState({ // Handling empty fields in form
+    room: false,
+    purpose: false,
+    date: false,
+    startTime: false,
+    endTime: false,
+    advisor: false,
+  });
 
   const allTimes = getTimeRange({
     startTime: "7:30",
@@ -37,14 +40,26 @@ const DetailsForm = () => {
         )
       : allTimes;
 
+  const validateForm = () => {
+    const newErrors = {
+      room: !room,
+      purpose: !purpose,
+      date: !date,
+      startTime: !startTime,
+      endTime: !endTime,
+      advisor: !advisor,
+    };
+    setErrors(newErrors);
+    return !Object.values(newErrors).includes(true);
+  };
+
+  useImperativeHandle(ref, () => ({
+    validateAndProceed: validateForm,
+  }));
+
   return (
-    <MantineProvider
-      theme={{
-        components: {},
-      }}
-    >
+    <MantineProvider>
       <form
-        action="#"
         className="flex flex-col gap-5 justify-center items-center"
       >
         <div className="flex gap-4 w-full">
@@ -53,6 +68,9 @@ const DetailsForm = () => {
               label="Room"
               placeholder="Select Room"
               data={["TRIL", "Knowledge Center", "Open Lab/BYOD"]}
+              value={room}
+              onChange={(value) => setRoom(value || "")}
+              error={errors.room ? "Please select a room" : undefined}
             />
           </div>
           <div className="flex-1">
@@ -60,66 +78,68 @@ const DetailsForm = () => {
               label="Purpose"
               placeholder="Select Purpose"
               data={["IT Project-Related", "Research-Related"]}
+              value={purpose}
+              onChange={(value) => setPurpose(value || "")}
+              error={errors.purpose ? "Please select a purpose" : undefined}
             />
           </div>
         </div>
+
         <div className="w-full">
           <DatePickerInput
             leftSection={<TbCalendar size={18} />}
             leftSectionPointerEvents="none"
             label="Select Date"
-            placeholder={formattedDate}
+            value={date}
+            onChange={(value: DatePickerValue) => setDate(value as Date | null)}
+            error={errors.date ? "Please select a date" : undefined}
             clearable
-            minDate={date}
+            minDate={new Date()}
             maxDate={dayjs().add(1, "M").toDate()}
             excludeDate={(date) => dayjs(date).day() === 0}
             firstDayOfWeek={0}
           />
-          {/* <div>Select Date</div>
-          <MiniCalendar
-            aria-label="Select Date"
-            numberOfDays={10}
-            minDate={currentDate}
-          /> */}
         </div>
+
         <div className="flex w-full gap-4">
           <div className="flex-1">
             <TimePicker
               label="Time Start"
-              withDropdown
-              format="12h"
               value={startTime}
-              onChange={(value) => {
-                setStartTime(value);
-                setEndTime("");
+              onChange={(val) => {
+                setStartTime(val);
+                setEndTime(undefined);
               }}
+              error={errors.startTime ? "Please select a start time" : undefined}
               presets={allTimes}
             />
           </div>
           <div className="flex-1">
             <TimePicker
               label="Time End"
-              withDropdown
-              format="12h"
               value={endTime}
               onChange={setEndTime}
+              error={errors.endTime ? "Please select an end time" : undefined}
               presets={filteredEndTimes}
             />
           </div>
         </div>
-        <div className="w-full ">
+
+        <div className="w-full">
           <Select
             label="Advisor"
             placeholder="Select Advisor"
             data={["Josephine Dela Cruz", "Dalos D. Miguel"]}
+            value={advisor}
+            onChange={(value) => setAdvisor(value || "")}
+            error={errors.advisor ? "Please select an advisor" : undefined}
             description="If applicable, enter the supervising advisor/faculty"
-            className=""
             clearable
           />
         </div>
       </form>
     </MantineProvider>
   );
-};
+});
 
-export default DetailsForm;
+export default Details;

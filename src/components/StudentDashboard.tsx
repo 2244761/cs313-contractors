@@ -5,17 +5,18 @@ import Participants from "./form/Participants";
 import { MantineProvider, Stepper } from "@mantine/core";
 import { TbClipboardText, TbUsersGroup, TbCheckupList } from "react-icons/tb";
 import { useGetIdentity, useLogout } from "@refinedev/core";
+import supabaseClient from "../config/supabaseClient";
 
 export const StudentDashboard = () => {
   // Fetch User
   const [loggedInUser, setLoggedInUser] = useState("");
-  const { data, isLoading } = useGetIdentity();
+  const { data: userData, isLoading } = useGetIdentity();
 
   useEffect(() => {
-    if (!isLoading && data) {
-      setLoggedInUser(data?.user.user_metadata?.full_name ?? "Unnamed user...");
+    if (!isLoading && userData) {
+      setLoggedInUser(userData?.user.user_metadata?.full_name ?? "Unnamed user...");
     }
-  }, [data, isLoading]);
+  }, [userData, isLoading]);
 
   console.log("Rendered with:", loggedInUser);
 
@@ -23,15 +24,116 @@ export const StudentDashboard = () => {
 
   // Stepper
   const [active, setActive] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const detailsFormRef = useRef<any>(null); 
   const participantsFormRef = useRef<any>(null); 
-  const handleNextStep = () => { // Handles the next button, calls validation in child page 
+  const [detailsData, setDetailsData] = useState(null);
+  const [participantsData, setParticipantsData] = useState(null);
+  
+  const handleSubmit = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
+    const userId = userData?.user.id;
+    if (!userId) {
+      alert("Error: You are not logged in.");
+      setIsSubmitting(false);
+      return;
+    }
+    
+    if (!detailsData || !participantsData) {
+        alert("Error: Form data is missing. Please restart the form.");
+        setIsSubmitting(false);
+        return;
+    }
+
+    let newReservationId: number | null = null;
+    let newRoomReservationId: number | null = null;
+
+    try {
+      const s = await supabaseClient.auth.getSession();
+      console.log(">>> supabase session object:", s);
+      console.log(">>> current user id from session:", s?.data?.session?.user?.id);
+      console.log(">>> access token length:", s?.data?.session?.access_token?.length || 0);
+
+
+      const { data: reservationRecord, error: reservationError } = await supabaseClient
+        .from("reservation")
+        .insert({
+          user_id: userId,
+          purpose: (detailsData as any).purpose,
+          status: "PENDING",
+          type: "ROOM",
+        })
+        .select("id") 
+        .single(); 
+
+      if (reservationError) throw reservationError;
+      newReservationId = reservationRecord.id;
+
+      const { data: roomRecord, error: roomError } = await supabaseClient
+        .from("room_reservation")
+        .insert({
+          reservation_id: newReservationId,
+          room_id: (detailsData as any).room_id,
+          advisor: (detailsData as any).advisor,
+          equipments: (participantsData as any).equipment,
+          participants: (participantsData as any).participants,
+        })
+        .select("id")
+        .single();
+      
+      if (roomError) throw roomError;
+      newRoomReservationId = roomRecord.id;
+
+      const { error: scheduleError } = await supabaseClient
+        .from("schedule")
+        .insert({
+          reservation_id: newReservationId,
+          date: (detailsData as any).date,
+          start_time: (detailsData as any).startTime,
+          end_time: (detailsData as any).endTime,
+        });
+
+      if (scheduleError) throw scheduleError;
+
+      alert("Reservation Submitted Successfully!");
+      setActive(0); // Reset form
+      setDetailsData(null);
+      setParticipantsData(null);
+      
+    } catch (error: any) {
+      console.error("Supabase submission failed:", error);
+      alert("Error: " + error.message);
+      
+      if (newReservationId) {
+        await supabaseClient.from("reservation").delete().eq('id', newReservationId);
+      }
+      if (newRoomReservationId) {
+        await supabaseClient.from("room_reservation").delete().eq('id', newRoomReservationId);
+      }
+
+    } finally {
+      setIsSubmitting(false); 
+    }
+  };
+  const handleNextStep = () => { 
     let isValid = true; 
+
     if (active === 0) {
       isValid = detailsFormRef.current && detailsFormRef.current.validateAndProceed();
+      if (isValid) {
+        setDetailsData(detailsFormRef.current.getFormData());
+      }
     } else if (active === 1) {
       isValid = participantsFormRef.current && participantsFormRef.current.validateAndProceed();
-    } 
+      if (isValid) {
+        setParticipantsData(participantsFormRef.current.getFormData());
+      }
+    } else if (active === 2) {
+      handleSubmit();
+      return; 
+    }
   
     if (isValid) {
       setActive((current) => (current < 3 ? current + 1 : current));
@@ -41,7 +143,6 @@ export const StudentDashboard = () => {
     setActive((current) => (current > 0 ? current - 1 : current));
   return (
     <>
-      {/* Targets the Separator of the Stepper Class */}
       <MantineProvider
         theme={{
           components: {
@@ -107,7 +208,7 @@ export const StudentDashboard = () => {
                   label="Details"
                   icon={<TbClipboardText size={24} />}
                 >
-                  <Details ref={detailsFormRef}/>
+                {active === 0 && <Details ref={detailsFormRef}/>}
                 </Stepper.Step>
                 <Stepper.Step
                   label="Participants"
@@ -123,15 +224,17 @@ export const StudentDashboard = () => {
               <div className="flex justify-between">
                 <button
                   onClick={prevStep}
-                  className="py-2 px-12 text-[var(--primary)] border border-[var(--primary)] rounded-sm cursor-pointer duration-200 hover:bg-[var(--primary)] hover:text-white"
+                  className={`py-2 px-12 text-[var(--primary)] border border-[var(--primary)] rounded-sm cursor-pointer duration-200 hover:bg-[var(--primary)] hover:text-white ${
+                  active === 0 ? "invisible" : "visible"
+                  }`}
                 >
                   Back
                 </button>
                 <button
                   onClick={handleNextStep}
-                  className="py-2 px-12 bg-[var(--primary)] text-[var(--primary-white)] rounded-sm cursor-pointer hover:bg-[var(--primary-hover)] duration-200"
-                >
-                  Next
+                  disabled={isSubmitting}
+                className="py-2 px-12 bg-[var(--primary)] text-[var(--primary-white)] rounded-sm cursor-pointer hover:bg-[var(--primary-hover)] duration-200 disabled:opacity-50">
+                  {isSubmitting ? "Submitting..." : (active === 2 ? "Submit" : "Next")}
                 </button>
               </div>
             </div>

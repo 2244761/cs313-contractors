@@ -1,4 +1,4 @@
-import { useImperativeHandle, useState, forwardRef } from "react";
+import { useImperativeHandle, useEffect, useState, forwardRef } from "react";
 import {
   DatePickerInput,
   type DatePickerValue,
@@ -8,9 +8,16 @@ import {
 import { MantineProvider, Select } from "@mantine/core";
 import { TbCalendar } from "react-icons/tb";
 import dayjs from "dayjs";
+import supabaseClient from "../../config/supabaseClient";
+
+interface Room {
+  id: number;
+  name: string;
+}
 
 const Details = forwardRef((props, ref) => {
-  const [room, setRoom] = useState("");
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [room, setRoom] = useState<string | null>(null);
   const [purpose, setPurpose] = useState("");
   const [date, setDate] = useState<Date | null>(null);
   const [startTime, setStartTime] = useState<string | undefined>();
@@ -25,6 +32,21 @@ const Details = forwardRef((props, ref) => {
     endTime: false,
     advisor: false,
   });
+
+  useEffect(() => {
+    const fetchRooms = async () => {
+      const { data, error } = await supabaseClient
+        .from("room")
+        .select("id, name");
+        
+      if (error) {
+        console.error("Error fetching rooms:", error);
+      } else if (data) {
+        setRooms(data);
+      }
+    };
+    fetchRooms();
+  }, []);
 
   const allTimes = getTimeRange({
     startTime: "7:30",
@@ -47,14 +69,29 @@ const Details = forwardRef((props, ref) => {
       date: !date,
       startTime: !startTime,
       endTime: !endTime,
-      advisor: !advisor,
+      advisor: false,
     };
     setErrors(newErrors);
     return !Object.values(newErrors).includes(true);
   };
 
+  const getFormData = () => ({
+    room_id: room ? parseInt(room) : null, 
+    purpose: purpose,
+    date,
+    startTime,
+    endTime,
+    advisor,
+  });
+
   useImperativeHandle(ref, () => ({
     validateAndProceed: validateForm,
+    getFormData: getFormData,
+  }));
+
+  const roomSelectData = rooms.map(r => ({
+    value: r.id.toString(), // Select component needs string values
+    label: r.name,
   }));
 
   return (

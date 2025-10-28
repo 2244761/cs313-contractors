@@ -1,73 +1,195 @@
-// INITIAL CODE
-import { format, addDays, startOfWeek } from "date-fns";
-import { forwardRef } from "react";
+import { forwardRef, useEffect, useState } from "react";
+import { format, addDays, addWeeks } from "date-fns";
 import { IoAddCircleSharp } from "react-icons/io5";
 import { BiDownArrow } from "react-icons/bi";
+import { IoIosArrowDropleft, IoIosArrowDropright, IoIosArrowDown } from "react-icons/io";
+import { Link } from "react-router";
+import supabase from "../../config/supabaseClient";
 
-interface CalendarEvent {
-    title: string;
-    day: number;
-    startTime: string;
-    endTime: string;
-    color: string;
-}
-
-interface CalendarProps {
-    events?: CalendarEvent[];
-    startHour?: number;
-    endHour?: number;
-}
+import {
+    type CalendarEvent,
+    type CalendarProps,
+    type Room,
+    getTop,
+    getDuration,
+    getBaseWeek,
+    generateWeekOptions,
+    formatEvents,
+} from "./CalendarUtil";
 
 const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
-    ({ events = [], startHour = 7, endHour = 20 }, ref) => {
-        const start = startOfWeek(new Date(), { weekStartsOn: 0 });
+    ({startHour = 7, endHour = 20 }, ref) => {
+
+        const [weekOffset, setWeekOffset] = useState(0);
+        const [dropdownOpen, setDropdownOpen] = useState(false);
+        const [roomDropdownOpen, setRoomDropdownOpen] = useState(false);
+        const [selectedRoom, setSelectedRoom] = useState("");
+        const [rooms, setRooms] = useState<Room[]>([]);
+        const [loadingRooms, setLoadingRooms] = useState(true);
+        const [events, setEvents] = useState<CalendarEvent[]>([]);
+        const [loadingEvents, setLoadingEvents] = useState(false);
+
+        // Fetch rooms from Supabase
+        useEffect(() => {
+            async function fetchRooms() {
+                const { data, error } = await supabase.rpc("get_rooms") as {
+                    data: Room[] | null;
+                    error: any;
+                };
+                if (error) console.error("Error fetching rooms:", error);
+                else {
+                    setRooms(data || []);
+                    if (data && data.length > 0) setSelectedRoom(data[0].name);
+                }
+                setLoadingRooms(false);
+            }
+            fetchRooms();
+        }, []);
+
+        const baseWeek = getBaseWeek();
+        const start = addWeeks(baseWeek, weekOffset);
         const days = Array.from({ length: 7 }).map((_, i) => addDays(start, i));
         const today = new Date();
-
         const rowHeight = 24; // px per 30 minutes
         const totalHalfHours = (endHour - startHour) * 2;
+        const weekOptions = generateWeekOptions(baseWeek);
 
-    // const events = [
-    //     {
-    //         title: "CS123 7735",
-    //         day: 1, // Monday
-    //         startTime: "7:30 AM",
-    //         endTime: "9:00 AM",
-    //         color: "bg-blue-700",
-    //     },
-    //     {
-    //         title: "CS313 9325",
-    //         day: 1,
-    //         startTime: "12:00 PM",
-    //         endTime: "1:30 PM",
-    //         color: "bg-rose-500",
-    //     },
-    //     {
-    //         title: "<Purpose>",
-    //         day: 2,
-    //         startTime: "7:30 AM",
-    //         endTime: "8:00 AM",
-    //         color: "bg-green-600",
-    //     },
-    //     {
-    //         title: "MAINTENANCE",
-    //         day: 5,
-    //         startTime: "7:30 AM",
-    //         endTime: "1:30 PM",
-    //         color: "bg-orange-600",
-    //     }
-    // ];
+        useEffect(() => {
+            async function fetchSchedules() {
+                if (loadingRooms || rooms.length === 0) return;
+                setLoadingEvents(true);
+                try {
+                    const { data: userData, error: userError } =
+                        await supabase.auth.getUser();
+                    if (userError || !userData?.user) throw userError;
+                    const user = userData.user;
+
+                    console.log(user.id)
+
+                    const startOfWeek = format(start, "yyyy-MM-dd");
+                    const endOfWeek = format(addDays(start, 6), "yyyy-MM-dd");
+                    const selectedRoomObj = rooms.find((r) => r.name === selectedRoom);
+                    console.log(selectedRoomObj);
+
+                    const { data, error } = await supabase.rpc("get_room_schedule", {
+                        p_room_id: selectedRoomObj?.id,
+                        p_user_id: user.id,
+                        p_start: startOfWeek,
+                        p_end: endOfWeek,
+                    });
+
+                    console.log(data)
+
+                    if (error) throw error;
+
+                    setEvents(formatEvents(data));
+                } catch (err) {
+                    console.error("Error fetching schedules:", err);
+                } finally {
+                    setLoadingEvents(false);
+                }
+            }
+
+            fetchSchedules();
+        }, [selectedRoom, weekOffset, rooms]);
+        
     return (
-
-        <div className="bg-white pt-8 rounded-md">
+        <div className="bg-white rounded-md">
             {/* Header */}
-            <div ref={ref} className="flex justify-between items-center mb-5 ml-8">
-                <h2 className="text-lg font-semibold">
-                    {format(start, "MMMM d, yyyy")} - {format(addDays(start, 6), "MMMM d, yyyy")}
-                    <BiDownArrow />
-                </h2>
-                <div>
-                    <IoAddCircleSharp />
+            <div ref={ref} className="flex justify-between items-center relative pt-3 pb-3 pl-0.5 pr-0.5">
+                {/* Week Dropdown */}
+                <div className="relative">
+                    <button
+                        onClick={() => setDropdownOpen((prev) => !prev)}
+                        className="flex items-center gap-2 px-3 py-2 bg-white"
+                    >
+                        <span className="font-bold text-lg">
+                            {format(start, "MMMM d, yyyy")} -{" "}
+                            {format(addDays(start, 6), "MMMM d, yyyy")}
+                        </span>
+                        <BiDownArrow
+                            className={`transition-transform duration-200 ${
+                                dropdownOpen ? "rotate-180" : ""
+                            }`}
+                        />
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {dropdownOpen && (
+                        <div className="absolute mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
+                            {weekOptions.map((week) => (
+                                <button
+                                    key={week.offset}
+                                    onClick={() => {
+                                        setWeekOffset(week.offset);
+                                        setDropdownOpen(false);
+                                    }}
+                                    className={`block w-full text-left px-4 py-2 hover:bg-blue-100 transition ${
+                                        week.offset === weekOffset ? "bg-blue-50 font-semibold" : ""
+                                    }`}
+                                >
+                                    <span className="text-lg">{week.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Right Controls */}
+                <div className="flex items-center gap-3 mr-3 relative">
+                    <Link to="/student-dashboard">
+                        <IoAddCircleSharp
+                            className="text-4xl cursor-pointer text-[var(--primary)] hover:text-[var(--primary-hover)] transition"
+                        />
+                    </Link>
+
+                    {/* Room Dropdown */}
+                    <div className="relative">
+                        <button
+                            onClick={() => setRoomDropdownOpen((prev) => !prev)}
+                            className="flex items-center justify-between w-52 px-3 py-1 bg-white border border-gray-300 rounded-md"
+                        >
+                            <span className="text-base">{selectedRoom}</span>
+                            <IoIosArrowDown
+                                className={`transition-transform duration-200 ${
+                                    roomDropdownOpen ? "rotate-180" : ""
+                                }`}
+                            />
+                        </button>
+
+                        {roomDropdownOpen && !loadingRooms && (
+                            <div className="absolute right-0 mt-2 w-52 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
+                                {rooms.map((room) => (
+                                    <button
+                                        key={room.id}
+                                        onClick={() => {
+                                            setSelectedRoom(room.name);
+                                            setRoomDropdownOpen(false);
+                                        }}
+                                        className={`block w-full text-left px-4 py-2 hover:bg-blue-100 transition ${
+                                            room.name === selectedRoom
+                                                ? "bg-blue-50 font-semibold"
+                                                : ""
+                                        }`}
+                                    >
+                                        {room.name}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Week navigation */}
+                    <span className="flex gap-1">
+                          <IoIosArrowDropleft
+                              className="text-2xl cursor-pointer hover:text-gray-700 transition"
+                              onClick={() => setWeekOffset((prev) => prev - 1)}
+                          />
+                          <IoIosArrowDropright
+                              className="text-2xl cursor-pointer hover:text-gray-700 transition"
+                              onClick={() => setWeekOffset((prev) => prev + 1)}
+                          />
+                    </span>
                 </div>
             </div>
 
@@ -75,12 +197,11 @@ const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
                 {/* Header Row */}
                 <div className="flex">
                     <div className="border-r border-t-2 border-b text-sm w-26 flex-shrink-0 border-gray-400">
-                        {/* Top-left corner space */}
                         <div className="border-b border-gray-400"></div>
                     </div>
-                    <div className="grid grid-cols-7 flex-1 border-t border-gray-400">
 
-                        {/* Weekday headers */}
+                    {/* Weekday headers */}
+                    <div className="grid grid-cols-7 flex-1 border-t border-gray-400">
                         {days.map((day, dayIndex) => {
                             const isPast = day < new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
@@ -165,22 +286,5 @@ const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
         </div>
     );
 });
-
-// Utility functions
-function parseTime(timeStr: string): number {
-    const [time, modifier] = timeStr.split(" ");
-    let [hours, minutes] = time.split(":").map(Number);
-    if (modifier === "PM" && hours !== 12) hours += 12;
-    if (modifier === "AM" && hours === 12) hours = 0;
-    return hours + minutes / 60;
-}
-
-function getTop(time: string): number {
-    return parseTime(time);
-}
-
-function getDuration(start: string, end: string): number {
-    return parseTime(end) - parseTime(start);
-}
 
 export default Calendar;

@@ -2,7 +2,7 @@ import { MantineProvider, TagsInput, TextInput } from "@mantine/core";
 import { useImperativeHandle, forwardRef, useState } from "react";
 import { FaPlusSquare } from "react-icons/fa";
 
-const Participants = forwardRef((props, ref) => {
+const Participants = forwardRef((_props, ref) => {
   const [equipment, setEquipment] = useState<string[]>([]);
 
   const [errors, setErrors] = useState({

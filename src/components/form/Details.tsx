@@ -9,7 +9,7 @@ import { MantineProvider, Select } from "@mantine/core";
 import { TbCalendar } from "react-icons/tb";
 import dayjs from "dayjs";
 
-const Details = forwardRef((props, ref) => {
+const Details = forwardRef((_props, ref) => {
   const [room, setRoom] = useState("");
   const [purpose, setPurpose] = useState("");
   const [date, setDate] = useState<Date | null>(null);

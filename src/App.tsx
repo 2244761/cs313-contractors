@@ -24,6 +24,7 @@ import { authProvider } from "./providers/auth-provider";
 // Components
 import { Login } from "./components/Login";
 import { StudentDashboard } from "./components/StudentDashboard";
+import StudentCalendar from "./components/StudentCalendar"
 import { AdminDashboard } from "./components/AdminDashboard";
 import RoleRedirect from "./RoleRedirect";
 import { Layout } from "./components/layout";
@@ -42,10 +43,7 @@ function App() {
             routerProvider={routerProvider}
             authProvider={authProvider}
             resources={[
-              {
-                name: "calendar",
-                list: "/calendar",
-              },
+              { name: "calendar", list: "/calendar", },
               { name: "reservations", list: "/reservations" },
               { name: "history", list: "/history" },
               { name: "rooms", list: "/rooms" },
@@ -76,6 +74,7 @@ function App() {
                   path="/student-dashboard"
                   element={<StudentDashboard />}
                 />
+                  <Route path="/calendar" element={<StudentCalendar />} />
                 <Route path="/admin-dashboard" element={<AdminDashboard />} />
                 <Route path="/users">
                   <Route index element={<UserList />}></Route>

@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 // import { useMultistepForm } from "../useMultistepForm";
+import Review from "./form/Review";
 import Details from "./form/Details";
 import Participants from "./form/Participants";
 import { MantineProvider, Stepper } from "@mantine/core";
@@ -174,8 +175,18 @@ export const StudentDashboard = () => {
                   <Participants ref={participantsFormRef}/>
                 </Stepper.Step>
                 <Stepper.Step label="Review" icon={<TbCheckupList size={24} />}>
-                  <h1>Review</h1>
+                  {detailsData && participantsData ? (
+                    <Review
+                      detailsData={detailsData}
+                      participantsData={participantsData}
+                      onEditStep={(stepIndex) => setActive(stepIndex)}
+                    />
+                  ) : (
+                    <p className="text-center text-gray-600">Loading review data...</p>
+                  )}
                 </Stepper.Step>
+
+
               </Stepper>
 
               <div className="flex justify-between">

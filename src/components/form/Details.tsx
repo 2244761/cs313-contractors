@@ -75,15 +75,18 @@ const Details = forwardRef((props, ref) => {
     return !Object.values(newErrors).includes(true);
   };
 
-  const getFormData = () => ({
-    room_id: room ? parseInt(room) : null, 
-    purpose: purpose,
+  const getFormData = () => {
+  const selectedRoom = rooms.find((r) => r.id === parseInt(room || ""));
+  return {
+    room_id: room ? parseInt(room) : null,
+    room_name: selectedRoom ? selectedRoom.name : null,
+    purpose,
     date,
     startTime,
     endTime,
     advisor,
-  });
-
+  };
+};
   useImperativeHandle(ref, () => ({
     validateAndProceed: validateForm,
     getFormData: getFormData,

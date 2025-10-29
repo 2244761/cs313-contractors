@@ -264,7 +264,7 @@ const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
                                             return (
                                                 <div
                                                     key={idx}
-                                                    className={`absolute left-1 right-1 text-white p-2 rounded ${event.color} shadow-md`}
+                                                    className={`absolute left-1 right-1 text-white p-2 rounded ${event.color} transition-all shadow-md duration-100`}
                                                     style={{
                                                         top: `${topPx}px`,
                                                         height: `${heightPx}px`,

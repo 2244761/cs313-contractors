@@ -104,7 +104,7 @@ const Details = forwardRef((props, ref) => {
             <Select
               label="Room"
               placeholder="Select Room"
-              data={["TRIL", "Knowledge Center", "Open Lab/BYOD"]}
+              data={roomSelectData}
               value={room}
               onChange={(value) => setRoom(value || "")}
               error={errors.room ? "Please select a room" : undefined}

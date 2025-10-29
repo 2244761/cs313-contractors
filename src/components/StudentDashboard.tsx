@@ -8,139 +8,96 @@ import { useGetIdentity, useLogout } from "@refinedev/core";
 import supabaseClient from "../config/supabaseClient";
 
 export const StudentDashboard = () => {
-  // Fetch User
-  const [loggedInUser, setLoggedInUser] = useState("");
-  const { data: userData, isLoading } = useGetIdentity();
+    // --- User Fetching ---
+    const [loggedInUser, setLoggedInUser] = useState("");
+    const { data: userData, isLoading } = useGetIdentity();
+    const { mutate: logout, isPending } = useLogout();
 
-  useEffect(() => {
-    if (!isLoading && userData) {
-      setLoggedInUser(userData?.user.user_metadata?.full_name ?? "Unnamed user...");
-    }
-  }, [userData, isLoading]);
+    useEffect(() => {
+        if (!isLoading && userData) {
+            setLoggedInUser(userData?.user?.user_metadata?.full_name ?? "Unnamed user...");
+        }
+    }, [userData, isLoading]);
 
   console.log("Rendered with:", loggedInUser);
 
-  const { mutate: logout, isPending } = useLogout();
-
   // Stepper
-  const [active, setActive] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const detailsFormRef = useRef<any>(null); 
-  const participantsFormRef = useRef<any>(null); 
-  const [detailsData, setDetailsData] = useState(null);
-  const [participantsData, setParticipantsData] = useState(null);
-  
-  const handleSubmit = async () => {
-    if (isSubmitting) return;
-    setIsSubmitting(true);
+    // --- Stepper State ---
+    const [active, setActive] = useState(0);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const detailsFormRef = useRef<any>(null);
+    const participantsFormRef = useRef<any>(null);
+    const [detailsData, setDetailsData] = useState<any>(null);
+    const [participantsData, setParticipantsData] = useState<any>(null);
 
-    const userId = userData?.user.id;
-    if (!userId) {
-      alert("Error: You are not logged in.");
-      setIsSubmitting(false);
-      return;
-    }
-    
-    if (!detailsData || !participantsData) {
-        alert("Error: Form data is missing. Please restart the form.");
-        setIsSubmitting(false);
-        return;
-    }
+    const handleSubmit = async () => {
+        if (isSubmitting) return;
+        setIsSubmitting(true);
 
-    let newReservationId: number | null = null;
-    let newRoomReservationId: number | null = null;
+        try {
+            const userId = userData?.user?.id;
+            if (!userId) throw new Error("You are not logged in.");
 
-    try {
-      const s = await supabaseClient.auth.getSession();
-      console.log(">>> supabase session object:", s);
-      console.log(">>> current user id from session:", s?.data?.session?.user?.id);
-      console.log(">>> access token length:", s?.data?.session?.access_token?.length || 0);
+            if (!detailsData || !participantsData)
+                throw new Error("Form data is missing. Please restart the form.");
 
+            // Call the SQL function directly
 
-      const { data: reservationRecord, error: reservationError } = await supabaseClient
-        .from("reservation")
-        .insert({
-          user_id: userId,
-          purpose: (detailsData as any).purpose,
-          status: "PENDING",
-          type: "ROOM",
-        })
-        .select("id") 
-        .single(); 
+            console.log(detailsData)
+            console.log(participantsData)
 
-      if (reservationError) throw reservationError;
-      newReservationId = reservationRecord.id;
+            const { data, error } = await supabaseClient.rpc("create_room_reservation", {
+                p_user_id: userId,
+                p_purpose: detailsData.purpose || "Reservation Test",
+                p_room_id: parseInt(detailsData.room_id),
+                p_dates: Array.isArray(detailsData.date)
+                    ? detailsData.date
+                    : [detailsData.date],
+                p_start_time: detailsData.startTime,
+                p_end_time: detailsData.endTime,
+                p_equipments: participantsData.equipment || null,
+                p_advisor: detailsData.advisor || null,
+                p_participants: participantsData.participants || null,
+                p_remarks: detailsData.remarks || "Reservation Test",
+            });
 
-      const { data: roomRecord, error: roomError } = await supabaseClient
-        .from("room_reservation")
-        .insert({
-          reservation_id: newReservationId,
-          room_id: (detailsData as any).room_id,
-          advisor: (detailsData as any).advisor,
-          equipments: (participantsData as any).equipment,
-          participants: (participantsData as any).participants,
-        })
-        .select("id")
-        .single();
-      
-      if (roomError) throw roomError;
-      newRoomReservationId = roomRecord.id;
+            if (error) throw error;
 
-      const { error: scheduleError } = await supabaseClient
-        .from("schedule")
-        .insert({
-          reservation_id: newReservationId,
-          date: (detailsData as any).date,
-          start_time: (detailsData as any).startTime,
-          end_time: (detailsData as any).endTime,
-        });
+            console.log("Reservation created:", data);
+            alert("Reservation submitted successfully!");
 
-      if (scheduleError) throw scheduleError;
+            // Reset state after successful submit
+            setActive(0);
+            setDetailsData(null);
+            setParticipantsData(null);
+        } catch (error: any) {
+            console.error("Error creating reservation:", error);
+            alert("Error: " + error.message);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+    const handleNextStep = () => {
+        let isValid = true;
 
-      alert("Reservation Submitted Successfully!");
-      setActive(0); // Reset form
-      setDetailsData(null);
-      setParticipantsData(null);
-      
-    } catch (error: any) {
-      console.error("Supabase submission failed:", error);
-      alert("Error: " + error.message);
-      
-      if (newReservationId) {
-        await supabaseClient.from("reservation").delete().eq('id', newReservationId);
-      }
-      if (newRoomReservationId) {
-        await supabaseClient.from("room_reservation").delete().eq('id', newRoomReservationId);
-      }
+        if (active === 0) {
+            isValid =
+                detailsFormRef.current?.validateAndProceed?.() ?? false;
+            if (isValid) setDetailsData(detailsFormRef.current.getFormData());
+        } else if (active === 1) {
+            isValid =
+                participantsFormRef.current?.validateAndProceed?.() ?? false;
+            if (isValid)
+                setParticipantsData(participantsFormRef.current.getFormData());
+        } else if (active === 2) {
+            handleSubmit();
+            return;
+        }
 
-    } finally {
-      setIsSubmitting(false); 
-    }
-  };
-  const handleNextStep = () => { 
-    let isValid = true; 
+        if (isValid) setActive((current) => (current < 3 ? current + 1 : current));
+    };
 
-    if (active === 0) {
-      isValid = detailsFormRef.current && detailsFormRef.current.validateAndProceed();
-      if (isValid) {
-        setDetailsData(detailsFormRef.current.getFormData());
-      }
-    } else if (active === 1) {
-      isValid = participantsFormRef.current && participantsFormRef.current.validateAndProceed();
-      if (isValid) {
-        setParticipantsData(participantsFormRef.current.getFormData());
-      }
-    } else if (active === 2) {
-      handleSubmit();
-      return; 
-    }
-  
-    if (isValid) {
-      setActive((current) => (current < 3 ? current + 1 : current));
-    }
-  };
-  const prevStep = () =>
-    setActive((current) => (current > 0 ? current - 1 : current));
+    const prevStep = () => setActive((current) => Math.max(0, current - 1));
   return (
     <>
       <MantineProvider

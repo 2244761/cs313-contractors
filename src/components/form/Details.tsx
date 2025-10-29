@@ -63,17 +63,19 @@ const Details = forwardRef((props, ref) => {
       : allTimes;
 
   const validateForm = () => {
-    const newErrors = {
-      room: !room,
-      purpose: !purpose,
-      date: !date,
-      startTime: !startTime,
-      endTime: !endTime,
-      advisor: false,
-    };
-    setErrors(newErrors);
-    return !Object.values(newErrors).includes(true);
+  const newErrors = {
+    room: !room,
+    purpose: !purpose,
+    date: !date,
+    startTime: !startTime,
+    endTime: !endTime,
+    advisor: !advisor || advisor.trim() === "",
   };
+  setErrors(newErrors);
+  console.log("advisor state:", advisor); // Debugging
+  return !Object.values(newErrors).includes(true);
+};
+
 
   const getFormData = () => {
   const selectedRoom = rooms.find((r) => r.id === parseInt(room || ""));
@@ -171,7 +173,7 @@ const Details = forwardRef((props, ref) => {
             placeholder="Select Advisor"
             data={["Josephine Dela Cruz", "Dalos D. Miguel"]}
             value={advisor}
-            onChange={(value) => setAdvisor(value || "")}
+            onChange={(value) => setAdvisor(value ?? "")}
             error={errors.advisor ? "Please select an advisor" : undefined}
             description="If applicable, enter the supervising advisor/faculty"
             clearable

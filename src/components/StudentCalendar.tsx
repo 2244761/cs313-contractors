@@ -1,4 +1,5 @@
 import Calendar from "./calendar/Calendar";
+import ChatBox from "./chat/index";
 
 const events = [
     { title: "CS123 7735", day: 1, startTime: "7:30 AM", endTime: "9:00 AM", color: "bg-blue-700" },
@@ -7,8 +8,10 @@ const events = [
 
 export default function StudentCalendar() {
     return(
-        <div>
+        <div className="relative min-h-screen">
             <Calendar events={events}/>
+            <ChatBox />
         </div>
     )
 }
+

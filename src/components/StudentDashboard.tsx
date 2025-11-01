@@ -1,4 +1,6 @@
 import { useEffect, useState, useRef } from "react";
+import ChatBox from "./chat/index";
+
 // import { useMultistepForm } from "../useMultistepForm";
 import Review from "./form/Review";
 import Details from "./form/Details";
@@ -211,6 +213,7 @@ export const StudentDashboard = () => {
       </MantineProvider>
 
       {/* <input type="date" name="" id="" min={minDate} max={maxDate}/> */}
+      <ChatBox />
     </>
   );
 };

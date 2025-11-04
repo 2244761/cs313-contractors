@@ -2,34 +2,61 @@ import { MantineProvider, TagsInput, TextInput } from "@mantine/core";
 import { useImperativeHandle, forwardRef, useState } from "react";
 import { FaPlusSquare } from "react-icons/fa";
 
+interface Participant {
+  id: number;
+  name: string;
+}
+
 const Participants = forwardRef((props, ref) => {
   const [equipment, setEquipment] = useState<string[]>([]);
 
   const [errors, setErrors] = useState({
     equipment: false,
+    participants: false,
   });
 
-  const [participants, setParticipants] = useState([
-    <TextInput placeholder="Enter Name" />,
+  const [participants, setParticipants] = useState<Participant[]>([
+    { id: Date.now(), name: "" }, 
   ]);
-  const addFields = () => {
-    const newField = <TextInput placeholder="Enter Name" />;
 
-    setParticipants([...participants, newField]);
+  const addFields = () => {
+    setParticipants([...participants, { id: Date.now(), name: "" }]);
+  };
+
+  const handleNameChange = (id: number, newName: string) => {
+    setParticipants(prevParticipants =>
+      prevParticipants.map(p => 
+        p.id === id ? { ...p, name: newName } : p
+      )
+    );
   };
 
   const validateForm = () => {
+    const hasValidParticipant = participants.some(p => p.name.trim() !== "");
+
     const newErrors = {
       equipment: equipment.length === 0, // Handling empty fields in form
+      participants: !hasValidParticipant,
     };
     setErrors(newErrors);
     return !Object.values(newErrors).includes(true);
   };
 
+  const getFormData = () => {
+    const participantNames = participants
+      .map(p => p.name.trim())
+      .filter(name => name.length > 0);
 
-    useImperativeHandle(ref, () => ({
-      validateAndProceed: validateForm, 
-    }));
+    return {
+      participants: participantNames,
+      equipment,
+    };
+  };
+
+  useImperativeHandle(ref, () => ({
+    validateAndProceed: validateForm, 
+    getFormData: getFormData,
+  }));
 
   return (
     <MantineProvider>
@@ -45,9 +72,21 @@ const Participants = forwardRef((props, ref) => {
         </div>
 
         <div className="flex flex-col gap-3">
-          {participants.map(() => {
-            return <TextInput placeholder="Enter Name" />;
-          })}
+          {participants.map((participant) => (
+            <TextInput
+              key={participant.id}
+              placeholder="Enter Name"
+              value={participant.name}
+              onChange={(event) =>
+                handleNameChange(participant.id, event.currentTarget.value)
+              }
+            />
+          ))}
+          {errors.participants && (
+             <span className="text-red-500 text-xs" style={{marginTop: '-8px'}}>
+               Please enter at least one participant's name
+             </span>
+          )}
         </div>
         <div>
           <TagsInput

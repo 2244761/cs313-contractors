@@ -6,6 +6,7 @@ import { IoPersonCircleOutline } from "react-icons/io5";
 
 export const UserInfo = () => {
   const [type, setType] = useState("");
+  const [avatar, setAvatar] = useState("");
   const [loggedInUser, setLoggedInUser] = useState("");
   const { data, isLoading } = useGetIdentity();
 
@@ -26,11 +27,12 @@ export const UserInfo = () => {
         const userId = data.user?.id ?? "";
         const { data: userData, error } = await supabase
           .from("user")
-          .select("type")
+          .select("type, avatar_url")
           .eq("id", userId)
           .single();
         if (error) console.error("An error occurred:", error.message);
         setType(userData?.type);
+        setAvatar(userData?.avatar_url);
       }
     }
 
@@ -38,8 +40,18 @@ export const UserInfo = () => {
   }, [data, isLoading]);
   return (
     <>
-      <div className="bg-[var(--accent)] text-[var(--primary-white)] p-2 px-2 flex items-center gap-4 rounded drop-shadow-xl">
-        <IoPersonCircleOutline size={"2.5rem"} />
+      <div className="bg-[var(--accent)] text-[var(--primary-white)] p-3 flex items-center gap-4 rounded drop-shadow-xl">
+        <div>
+          {avatar ? (
+            <img
+              src={avatar}
+              alt="Profile"
+              className="w-[2.5rem] h-auto rounded-full border border-black"
+            />
+          ) : (
+            <IoPersonCircleOutline size={"2.5rem"} />
+          )}
+        </div>
         <div className="flex flex-col items-end leading-none gap-1">
           <div className="font-black">{loggedInUser.toUpperCase()}</div>
           <div className="font">

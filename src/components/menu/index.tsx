@@ -5,8 +5,7 @@ import supabase from "../../config/supabaseClient";
 
 // React Icons
 import { RxExit } from "react-icons/rx";
-import { BsLayoutSidebar } from "react-icons/bs";
-import { BsLayoutSidebarReverse } from "react-icons/bs";
+import { BsLayoutSidebar, BsLayoutSidebarReverse } from "react-icons/bs";
 
 // Styles
 import { tw } from "../../utils/styles";
@@ -52,18 +51,21 @@ export const Menu = () => {
   return (
     <>
       <nav
-        className={`flex flex-col bg-white h-dvh p-4 justify-between duration-200  ${
-          isOpen ? tw.sidebar : tw.sidebarOpen
-        }`}
+        className={`fixed top-0 left-0 z-40 flex flex-col bg-white h-dvh p-4 justify-between shadow-md duration-300 transform
+        ${isOpen ? "translate-x-0" : "-translate-x-full"}
+        sm:static sm:translate-x-0 sm:shadow-none
+        ${isOpen ? tw.sidebar : tw.sidebarOpen}`}
       >
         <div className="flex flex-col gap-4 justify-between">
+          {/* Desktop Toggle */}
           <div
-            className="flex justify-end text-[var(--primary)] cursor-pointer w-"
+            className="hidden sm:flex justify-end text-[var(--primary)] cursor-pointer"
             onClick={() => setIsOpen(!isOpen)}
           >
             {isOpen ? <BsLayoutSidebarReverse /> : <BsLayoutSidebar />}
           </div>
 
+          {/* Logo & Title */}
           <div
             className={`flex items-center transition-all duration-300 ${
               isOpen ? "gap-2" : "gap-0"
@@ -75,14 +77,17 @@ export const Menu = () => {
               className="w-12 flex-shrink-0"
             />
             <h2
-              className={` transition-all duration-150 ${
+              className={`transition-all duration-150 ${
                 isOpen ? "opacity-100" : "opacity-0"
               }`}
             >
               Campus Reservation System
             </h2>
           </div>
+
           <hr className="text-[var(--ui-border)]" />
+
+          {/* Menu Items */}
           <ul className="flex flex-col gap-4">
             {menuItems.map((item) => (
               <li key={item.label}>
@@ -91,8 +96,9 @@ export const Menu = () => {
                   className={({ isActive }) =>
                     `px-3.5 py-2 rounded-md cursor-pointer flex items-center leading-0 transition-all duration-300
                     ${isOpen ? "gap-x-2" : "gap-x-0"}  
-                    ${isActive ? tw.isActiveTab : tw.isNotActiveTab} `
+                    ${isActive ? tw.isActiveTab : tw.isNotActiveTab}`
                   }
+                  onClick={() => setIsOpen(false)} // Close sidebar when clicking link (mobile)
                 >
                   <div className="flex-shrink-0">
                     {item.icon && <item.icon size={"1.25rem"} />}
@@ -110,6 +116,7 @@ export const Menu = () => {
           </ul>
         </div>
 
+        {/* Logout */}
         <button
           disabled={isPending}
           onClick={() => logout()}
@@ -129,6 +136,31 @@ export const Menu = () => {
           </span>
         </button>
       </nav>
+
+      {/* Attached Mobile Toggle */}
+      <button
+        className={`
+          fixed top-4 z-50 bg-[var(--primary)] p-2 rounded-r-xl
+          transition-all duration-300 ease-in-out
+          sm:hidden
+          ${isOpen ? "left-54" : "left-0"}
+        `}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        {isOpen ? (
+          <BsLayoutSidebarReverse size={20} color="var(--primary-white)" />
+        ) : (
+          <BsLayoutSidebar size={20} color="var(--primary-white)" />
+        )}
+      </button>
+
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-30 sm:hidden"
+          onClick={() => setIsOpen(false)}
+        ></div>
+      )}
     </>
   );
 };

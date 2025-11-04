@@ -22,7 +22,7 @@ import supabaseClient from "./config/supabaseClient";
 import { authProvider } from "./providers/auth-provider";
 
 // Components
-import { Login } from "./components/Login";
+import { Login } from "./pages/Login";
 import { StudentDashboard } from "./components/StudentDashboard";
 import { AdminDashboard } from "./components/AdminDashboard";
 import RoleRedirect from "./RoleRedirect";
@@ -30,6 +30,8 @@ import { Layout } from "./components/layout";
 
 // Pages
 import { UserList } from "./pages/users";
+import { ReservationList } from "./pages/reservations";
+import { SuspendedPage } from "./pages/Suspended";
 
 function App() {
   return (
@@ -80,6 +82,9 @@ function App() {
                 <Route path="/users">
                   <Route index element={<UserList />}></Route>
                 </Route>
+                <Route path="/reservations">
+                  <Route index element={<ReservationList />}></Route>
+                </Route>
                 <Route path="*" element={<ErrorComponent />} />
               </Route>
               <Route
@@ -92,6 +97,7 @@ function App() {
                   </Authenticated>
                 }
               >
+                <Route path="/suspended" element={<SuspendedPage />} />
                 <Route path="/login" element={<Login />} />
               </Route>
             </Routes>

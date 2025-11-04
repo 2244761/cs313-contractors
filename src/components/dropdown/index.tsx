@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { IoIosArrowDown } from "react-icons/io";
+import supabase from "../../config/supabaseClient";
 
 interface DropdownProps {
   userId: string;
@@ -8,10 +9,6 @@ interface DropdownProps {
   onToggle: (id: string) => void;
 }
 
-const handleSuspension = () => {
-  console.log("Test");
-};
-
 export const Dropdown = ({
   userId,
   isOpen,
@@ -19,6 +16,17 @@ export const Dropdown = ({
   onToggle,
 }: DropdownProps) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const handleSuspension = async () => {
+    if (!userId) return;
+    const { error } = await supabase
+      .from("user")
+      .update({ is_suspended: !userStatus })
+      .eq("id", userId);
+    if (error) {
+      console.error("Error updating user:", error);
+    }
+  };
 
   // Close open tab if clicked outside
   useEffect(() => {

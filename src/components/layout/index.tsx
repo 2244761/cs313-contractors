@@ -10,13 +10,12 @@ export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
         <div className="layout">
           <Menu />
         </div>
-        <div className="content w-full p-8 flex flex-col gap-8">
+        <div className="content w-full h-full p-8 flex flex-col gap-8">
           <div className="flex justify-between w-full items-center">
             <Breadcrumb />
             <UserInfo />
           </div>
-
-          <div>{children}</div>
+          <div className="flex-1">{children}</div>
         </div>
       </div>
     </>

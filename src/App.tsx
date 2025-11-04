@@ -24,15 +24,14 @@ import { authProvider } from "./providers/auth-provider";
 // Components
 import { Login } from "./pages/Login";
 import { StudentDashboard } from "./components/StudentDashboard";
-import StudentCalendar from "./components/StudentCalendar"
+import StudentCalendar from "./components/StudentCalendar";
 import { AdminDashboard } from "./components/AdminDashboard";
 import RoleRedirect from "./RoleRedirect";
 import { Layout } from "./components/layout";
 
 // Pages
 import { UserList } from "./pages/users";
-import { ReservationList } from "./pages/reservations";
-import { SuspendedPage } from "./pages/Suspended";
+import { Suspended } from "./pages/Suspended";
 
 function App() {
   return (
@@ -45,7 +44,7 @@ function App() {
             routerProvider={routerProvider}
             authProvider={authProvider}
             resources={[
-              { name: "calendar", list: "/calendar", },
+              { name: "calendar", list: "/calendar" },
               { name: "reservations", list: "/reservations" },
               { name: "history", list: "/history" },
               { name: "rooms", list: "/rooms" },
@@ -76,13 +75,13 @@ function App() {
                   path="/student-dashboard"
                   element={<StudentDashboard />}
                 />
-                  <Route path="/calendar" element={<StudentCalendar />} />
+                <Route path="/calendar" element={<StudentCalendar />} />
                 <Route path="/admin-dashboard" element={<AdminDashboard />} />
                 <Route path="/users">
                   <Route index element={<UserList />}></Route>
                 </Route>
                 <Route path="/reservations">
-                  <Route index element={<ReservationList />}></Route>
+                  {/* <Route index element={<ReservationList />}></Route> */}
                 </Route>
                 <Route path="*" element={<ErrorComponent />} />
               </Route>
@@ -96,7 +95,7 @@ function App() {
                   </Authenticated>
                 }
               >
-                <Route path="/suspended" element={<SuspendedPage />} />
+                <Route path="/suspended" element={<Suspended />} />
                 <Route path="/login" element={<Login />} />
               </Route>
             </Routes>

@@ -32,6 +32,8 @@ const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
     const [events, setEvents] = useState<CalendarEvent[]>([]);
     const [loadingEvents, setLoadingEvents] = useState(false);
 
+    console.log(loadingEvents); // REMOVE (used for npm run build)
+
     // Fetch rooms from Supabase
     useEffect(() => {
       async function fetchRooms() {

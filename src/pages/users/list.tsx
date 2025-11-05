@@ -11,7 +11,7 @@ import { tw } from "../../utils/styles";
 import { Dropdown } from "../../components/dropdown/index";
 import { NoResults } from "../../components/NoResults";
 import { SearchBar } from "../../components/searchbar/SearchBar";
-import Loader from "../../components/loader";
+import Loader from "../../components/Loader";
 
 // React Import
 import { useEffect, useState } from "react";

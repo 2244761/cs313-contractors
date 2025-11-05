@@ -32,6 +32,7 @@ import { Layout } from "./components/layout";
 // Pages
 import { UserList } from "./pages/users";
 import { Suspended } from "./pages/Suspended";
+import { ReservationCreate } from "./pages/reservations";
 
 function App() {
   return (
@@ -45,7 +46,11 @@ function App() {
             authProvider={authProvider}
             resources={[
               { name: "calendar", list: "/calendar" },
-              { name: "reservations", list: "/reservations" },
+              {
+                name: "reservations",
+                list: "/reservations",
+                create: "/reservations/create",
+              },
               { name: "history", list: "/history" },
               { name: "rooms", list: "/rooms" },
               { name: "users", list: "/users" },
@@ -82,6 +87,7 @@ function App() {
                 </Route>
                 <Route path="/reservations">
                   {/* <Route index element={<ReservationList />}></Route> */}
+                  <Route path="create" element={<ReservationCreate />} />
                 </Route>
                 <Route path="*" element={<ErrorComponent />} />
               </Route>

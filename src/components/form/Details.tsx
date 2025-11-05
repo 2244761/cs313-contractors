@@ -1,118 +1,113 @@
-import { useImperativeHandle, useEffect, useState, forwardRef } from "react";
-import {
-  DatePickerInput,
-  type DatePickerValue,
-  getTimeRange,
-  TimePicker,
-} from "@mantine/dates";
-import { MantineProvider, Select } from "@mantine/core";
+import { useEffect, useState } from "react";
+import { DatePickerInput, getTimeRange, TimePicker } from "@mantine/dates";
+import { MantineProvider, MultiSelect, Select } from "@mantine/core";
 import { TbCalendar } from "react-icons/tb";
 import dayjs from "dayjs";
-import supabaseClient from "../../config/supabaseClient";
+import { useList } from "@refinedev/core";
 
-interface Room {
-  id: number;
-  name: string;
+interface FormData {
+  room?: string[];
+  purpose?: string;
+  date?: Date[];
+  startTime?: string;
+  endTime?: string;
+  advisor?: string;
 }
 
-const Details = forwardRef((props, ref) => {
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [room, setRoom] = useState<string | null>(null);
-  const [purpose, setPurpose] = useState("");
-  const [date, setDate] = useState<Date | null>(null);
-  const [startTime, setStartTime] = useState<string | undefined>();
-  const [endTime, setEndTime] = useState<string | undefined>();
-  const [advisor, setAdvisor] = useState("");
+interface DetailsProps {
+  onDetailsChange?: (data: FormData) => void;
+  initialData?: FormData;
+  showErrors?: boolean;
+}
 
-  const [errors, setErrors] = useState({ // Handling empty fields in form
-    room: false,
-    purpose: false,
-    date: false,
-    startTime: false,
-    endTime: false,
-    advisor: false,
-  });
+const Details = ({
+  onDetailsChange,
+  initialData,
+  showErrors,
+}: DetailsProps) => {
+  // Fetch Room List
+  const { result } = useList({ resource: "room" });
 
-  useEffect(() => {
-    const fetchRooms = async () => {
-      const { data, error } = await supabaseClient
-        .from("room")
-        .select("id, name");
-        
-      if (error) {
-        console.error("Error fetching rooms:", error);
-      } else if (data) {
-        setRooms(data);
-      }
-    };
-    fetchRooms();
-  }, []);
-
+  // Form
+  const [formData, setFormData] = useState<FormData>(
+    initialData || {
+      room: [] as string[],
+      purpose: "",
+      date: [] as Date[],
+      startTime: "",
+      endTime: "",
+      advisor: "",
+    }
+  );
   const allTimes = getTimeRange({
     startTime: "7:30",
     endTime: "17:30",
     interval: "00:30",
   });
 
+  const filteredStartTimes = allTimes.slice(0, -1);
+
   const filteredEndTimes =
-    startTime && allTimes.includes(startTime)
+    formData.startTime && allTimes.includes(formData.startTime)
       ? allTimes.slice(
-          allTimes.indexOf(startTime) + 1,
-          allTimes.indexOf(startTime) + 4
+          allTimes.indexOf(formData.startTime) + 1,
+          allTimes.indexOf(formData.startTime) + 5
         )
       : allTimes;
 
-  const validateForm = () => {
-  const newErrors = {
-    room: !room,
-    purpose: !purpose,
-    date: !date,
-    startTime: !startTime,
-    endTime: !endTime,
-    advisor: !advisor || advisor.trim() === "",
+  // Validation to reset the end time if start time is changed
+  useEffect(() => {
+    if (
+      formData.startTime &&
+      formData.endTime &&
+      allTimes.indexOf(formData.endTime) <= allTimes.indexOf(formData.startTime)
+    ) {
+      setFormData((prev) => ({ ...prev, endTime: "" }));
+    }
+  }, [formData.startTime, formData.endTime, allTimes]);
+
+  // Send data up whenever formData changes
+  useEffect(() => {
+    if (onDetailsChange) {
+      onDetailsChange(formData);
+    }
+  }, [formData, onDetailsChange]);
+
+  // Errors
+  const errors = {
+    room:
+      showErrors && !formData.room
+        ? "Please select at least one available room."
+        : "",
+    purpose:
+      showErrors && !formData.purpose
+        ? "Please provide the purpose of your reservation."
+        : "",
+    date:
+      showErrors && !formData.date ? "Please choose at least one date." : "",
+    startTime:
+      showErrors && !formData.startTime ? "Please specify a start time." : "",
+    endTime:
+      showErrors && !formData.endTime ? "Please specify an end time." : "",
+    advisor:
+      showErrors && !formData.advisor
+        ? "Please select your advisor’s name."
+        : "",
   };
-  setErrors(newErrors);
-  console.log("advisor state:", advisor); // Debugging
-  return !Object.values(newErrors).includes(true);
-};
-
-
-  const getFormData = () => {
-  const selectedRoom = rooms.find((r) => r.id === parseInt(room || ""));
-  return {
-    room_id: room ? parseInt(room) : null,
-    room_name: selectedRoom ? selectedRoom.name : null,
-    purpose,
-    date,
-    startTime,
-    endTime,
-    advisor,
-  };
-};
-  useImperativeHandle(ref, () => ({
-    validateAndProceed: validateForm,
-    getFormData: getFormData,
-  }));
-
-  const roomSelectData = rooms.map(r => ({
-    value: r.id.toString(), // Select component needs string values
-    label: r.name,
-  }));
 
   return (
     <MantineProvider>
-      <form
-        className="flex flex-col gap-5 justify-center items-center"
-      >
+      <div className="flex flex-col gap-5 justify-center items-center">
         <div className="flex gap-4 w-full">
           <div className="flex-1">
-            <Select
+            <MultiSelect
+              type="multiple"
               label="Room"
               placeholder="Select Room"
-              data={roomSelectData}
-              value={room}
-              onChange={(value) => setRoom(value || "")}
-              error={errors.room ? "Please select a room" : undefined}
+              data={result.data.map((r) => r.name)}
+              value={formData.room?.map((id) => id.toString())}
+              onChange={(val) => setFormData({ ...formData, room: val })}
+              error={errors.room}
             />
           </div>
           <div className="flex-1">
@@ -120,26 +115,30 @@ const Details = forwardRef((props, ref) => {
               label="Purpose"
               placeholder="Select Purpose"
               data={["IT Project-Related", "Research-Related"]}
-              value={purpose}
-              onChange={(value) => setPurpose(value || "")}
-              error={errors.purpose ? "Please select a purpose" : undefined}
+              value={formData.purpose}
+              onChange={(val) =>
+                setFormData({ ...formData, purpose: val ?? "" })
+              }
+              error={errors.purpose}
             />
           </div>
         </div>
 
         <div className="w-full">
           <DatePickerInput
+            placeholder="Select Date"
+            type="multiple"
             leftSection={<TbCalendar size={18} />}
             leftSectionPointerEvents="none"
             label="Select Date"
-            value={date}
-            onChange={(value: DatePickerValue) => setDate(value as Date | null)}
-            error={errors.date ? "Please select a date" : undefined}
             clearable
             minDate={new Date()}
             maxDate={dayjs().add(1, "M").toDate()}
             excludeDate={(date) => dayjs(date).day() === 0}
             firstDayOfWeek={0}
+            value={formData.date?.map((d) => new Date(d))}
+            onChange={(val) => setFormData({ ...formData, date: val ?? [] })} //ignore
+            error={errors.date}
           />
         </div>
 
@@ -147,22 +146,30 @@ const Details = forwardRef((props, ref) => {
           <div className="flex-1">
             <TimePicker
               label="Time Start"
-              value={startTime}
+              value={formData.startTime}
               onChange={(val) => {
-                setStartTime(val);
-                setEndTime(undefined);
+                setFormData((prev) => ({
+                  ...prev,
+                  startTime: val ?? "",
+                  endTime: "",
+                }));
               }}
-              error={errors.startTime ? "Please select a start time" : undefined}
-              presets={allTimes}
+              presets={filteredStartTimes}
+              withDropdown
+              format="12h"
+              error={errors.startTime}
             />
           </div>
           <div className="flex-1">
             <TimePicker
               label="Time End"
-              value={endTime}
-              onChange={setEndTime}
-              error={errors.endTime ? "Please select an end time" : undefined}
+              value={formData.endTime}
+              onChange={(val) => setFormData({ ...formData, endTime: val })}
               presets={filteredEndTimes}
+              withDropdown
+              disabled={!formData.startTime}
+              format="12h"
+              error={errors.endTime}
             />
           </div>
         </div>
@@ -171,17 +178,17 @@ const Details = forwardRef((props, ref) => {
           <Select
             label="Advisor"
             placeholder="Select Advisor"
-            data={["Josephine Dela Cruz", "Dalos D. Miguel"]}
-            value={advisor}
-            onChange={(value) => setAdvisor(value ?? "")}
-            error={errors.advisor ? "Please select an advisor" : undefined}
+            data={["Josephine Dela Cruz", "Dalos Miguel", "Ramel Cabanilla"]}
             description="If applicable, enter the supervising advisor/faculty"
             clearable
+            value={formData.advisor}
+            onChange={(val) => setFormData({ ...formData, advisor: val ?? "" })}
+            error={errors.advisor}
           />
         </div>
-      </form>
+      </div>
     </MantineProvider>
   );
-});
+};
 
 export default Details;

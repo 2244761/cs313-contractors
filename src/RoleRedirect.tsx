@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 const RoleRedirect = () => {
   const { data, isLoading } = useGetIdentity();
-  const [role, setRole] = useState("");
+  const [type, setType] = useState("");
 
   useEffect(() => {
     if (isLoading) return;
@@ -20,11 +20,11 @@ const RoleRedirect = () => {
         const userId = data.user?.id ?? "";
         const { data: userData, error } = await supabase
           .from("user")
-          .select("role")
+          .select("type")
           .eq("id", userId)
           .single();
         if (error) console.error("An error occurred:", error.message);
-        setRole(userData?.role);
+        setType(userData?.type);
       }
     }
 
@@ -33,7 +33,7 @@ const RoleRedirect = () => {
 
   // if (isLoading) return <div>Loading...</div>;
   if (!data) return <Navigate to="/login" replace />;
-  if (!role) return <div>Loading...</div>;
+  if (!type) return <div>Loading...</div>;
 
   // if (role === "student") {
   //   return <Navigate to="/student-dashboard" replace />;
@@ -42,9 +42,9 @@ const RoleRedirect = () => {
   // }
 
   // TEMPORARY
-  if (role === "student") {
+  if (type === "STUDENT") {
     return <Navigate to="/student-dashboard" replace />;
-  } else if (role === "staff") {
+  } else if (type === "ADMIN") {
     return <Navigate to="/admin-dashboard" replace />;
   }
 

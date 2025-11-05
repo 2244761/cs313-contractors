@@ -1,88 +1,167 @@
-import { Card } from "@mantine/core";
+import {
+  Checkbox,
+  MantineProvider,
+  MultiSelect,
+  Select,
+  TagsInput,
+  TextInput,
+} from "@mantine/core";
+import { DatePickerInput, TimePicker } from "@mantine/dates";
+import { useState } from "react";
+import { TbCalendar } from "react-icons/tb";
 
-interface ReviewProps {
-  detailsData: any;
-  participantsData: any;
-  onEditStep: (stepIndex: number) => void;
+interface DetailsData {
+  room?: string[];
+  purpose?: string;
+  date?: Date[];
+  startTime?: string;
+  endTime?: string;
+  advisor?: string;
 }
 
-const formatDate = (dateValue: any): string => {
-  if (!dateValue) return "N/A";
-  if (Array.isArray(dateValue)) {
-    return dateValue.map((d) => formatDate(d)).join(", ");
-  }
-  try {
-    const date = typeof dateValue === "string" ? new Date(dateValue) : dateValue;
-    return isNaN(date.getTime()) ? String(dateValue) : date.toLocaleDateString();
-  } catch {
-    return String(dateValue);
-  }
-};
+interface ResourceData {
+  participants?: string[];
+  equipments?: string[];
+}
 
-const Review = ({ detailsData, participantsData, onEditStep }: ReviewProps) => {
-  if (!detailsData || !participantsData) {
-    return <p className="text-center text-gray-600">No data to review yet.</p>;
-  }
+interface ReviewProps {
+  details: DetailsData[];
+  resources: ResourceData[];
+  onAgreeChange?: (checked: boolean) => void;
+}
+
+const Review = ({ details, resources, onAgreeChange }: ReviewProps) => {
+  const detail = details[0] || {};
+  const resource = resources[0] || {};
+  const [agreed, setAgreed] = useState(false);
+
+  const handleCheckboxChange = (value: boolean) => {
+    setAgreed(value);
+    onAgreeChange?.(value);
+  };
 
   return (
-    <Card shadow="sm" p="lg" radius="md" withBorder>
-      <h2 className="text-lg font-semibold mb-3">Review Reservation Details</h2>
-
-      <div className="space-y-4">
-        <div>
-          <h3 className="font-medium text-blue-700">Details</h3>
-          <ul className="list-disc pl-5 text-sm text-gray-700">
-            <li><strong>Room:</strong> {detailsData.room_name ?? `Room ${detailsData.room_id ?? "N/A"}`}</li>
-            <li><strong>Purpose:</strong> {detailsData.purpose ?? "N/A"}</li>
-            <li><strong>Date:</strong> {formatDate(detailsData.date)}</li>
-            <li><strong>Start Time:</strong> {detailsData.startTime ?? "N/A"}</li>
-            <li><strong>End Time:</strong> {detailsData.endTime ?? "N/A"}</li>
-            <li><strong>Advisor:</strong> {detailsData.advisor || "None"}</li>
-          </ul>
-          <button
-            onClick={() => onEditStep(0)}
-            className="mt-2 text-sm text-blue-500 hover:underline"
-          >
-            ✏️ Edit Details
-          </button>
-        </div>
-
-        <div>
-          <h3 className="font-medium text-blue-700">Participants</h3>
-          <ul className="list-disc pl-5 text-sm text-gray-700">
-            {Array.isArray(participantsData.participants) &&
-            participantsData.participants.length > 0 ? (
-              participantsData.participants.map((p: string, idx: number) => (
-                <li key={idx}>{p}</li>
-              ))
-            ) : (
-              <li>No participants listed.</li>
-            )}
-          </ul>
-
-          <div className="mt-3">
-            <h4 className="font-medium text-blue-700">Equipment</h4>
-            <ul className="list-disc pl-5 text-sm text-gray-700">
-              {Array.isArray(participantsData.equipment) &&
-              participantsData.equipment.length > 0 ? (
-                participantsData.equipment.map((eq: string, idx: number) => (
-                  <li key={idx}>{eq}</li>
-                ))
-              ) : (
-                <li>No equipment listed.</li>
-              )}
-            </ul>
+    <MantineProvider>
+      <div className="flex flex-col gap-5 justify-center w-full max-w-3xl">
+        {/* Room and Purpose */}
+        <div className="flex gap-4 w-full">
+          <div className="flex-1">
+            <MultiSelect label="Room" value={detail.room} readOnly />
           </div>
-
-          <button
-            onClick={() => onEditStep(1)}
-            className="mt-2 text-sm text-blue-500 hover:underline"
-          >
-            ✏️ Edit Participants
-          </button>
+          <div className="flex-1">
+            <Select
+              label="Purpose"
+              data={["IT Project-Related", "Research-Related"]}
+              placeholder="Select Purpose"
+              value={detail.purpose}
+              readOnly
+            />
+          </div>
         </div>
+
+        {/* Date */}
+        <div className="w-full">
+          <DatePickerInput
+            type="multiple"
+            leftSection={<TbCalendar size={18} />}
+            leftSectionPointerEvents="none"
+            value={detail.date}
+            label="Date"
+            readOnly
+          />
+        </div>
+
+        {/* Time */}
+        <div className="flex w-full gap-4">
+          <div className="flex-1">
+            <TimePicker
+              label="Time Start"
+              value={detail.startTime}
+              withDropdown
+              format="12h"
+              readOnly
+            />
+          </div>
+          <div className="flex-1">
+            <TimePicker
+              label="Time End"
+              value={detail.endTime}
+              withDropdown
+              format="12h"
+              readOnly
+            />
+          </div>
+        </div>
+
+        {/* Advisor */}
+        <div className="w-full">
+          <Select
+            label="Advisor"
+            placeholder="Select Advisor"
+            data={["Josephine Dela Cruz", "Dalos Miguel", "Ramel Cabanilla"]}
+            value={detail.advisor}
+            readOnly
+          />
+        </div>
+
+        {/* Participants */}
+        <div className="w-full flex flex-col gap-4">
+          {resource.participants?.length ? (
+            resource.participants
+              .filter(
+                (participant, index) => index === 0 || participant.trim() !== ""
+              )
+              .map((participant, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <TextInput
+                    label={index === 0 ? "Participants" : undefined}
+                    value={participant}
+                    className="flex-1"
+                    disabled={!participant}
+                    readOnly
+                  />
+                </div>
+              ))
+          ) : (
+            <div className="flex items-center gap-2">
+              <TextInput
+                label="Participants"
+                className="flex-1"
+                disabled={true}
+                readOnly
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Equipments */}
+        <div className="w-full">
+          <TagsInput
+            readOnly
+            label="Equipments"
+            data={[
+              "Laptop",
+              "Router",
+              "Projector",
+              "Extension Cord",
+              "HDMI Cable",
+              "Arduino",
+            ]}
+            value={resource.equipments?.map((e: string) => e)}
+            disabled={!resource.equipments?.length ? true : false}
+          />
+        </div>
+
+        {/* Terms & Policies Checkbox */}
+        <Checkbox
+          label="I have read and understand the terms and policies."
+          checked={agreed}
+          onChange={(event) =>
+            handleCheckboxChange(event.currentTarget.checked)
+          }
+        />
       </div>
-    </Card>
+    </MantineProvider>
   );
 };
 

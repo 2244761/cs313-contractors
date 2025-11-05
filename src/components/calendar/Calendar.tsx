@@ -39,7 +39,7 @@ const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
       async function fetchRooms() {
         const { data, error } = (await supabase.rpc("get_rooms")) as {
           data: Room[] | null;
-          error: any;
+          error: unknown;
         };
         if (error) console.error("Error fetching rooms:", error);
         else {

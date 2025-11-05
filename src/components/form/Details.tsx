@@ -30,14 +30,19 @@ const Details = ({
 
   // Form
   const [formData, setFormData] = useState<FormData>(
-    initialData || {
-      room: [] as string[],
-      purpose: "",
-      date: [] as Date[],
-      startTime: "",
-      endTime: "",
-      advisor: "",
-    }
+    initialData
+      ? {
+          ...initialData,
+          date: initialData.date?.map((d) => new Date(d)) ?? [],
+        }
+      : {
+          room: [] as string[],
+          purpose: "",
+          date: [] as Date[],
+          startTime: "",
+          endTime: "",
+          advisor: "",
+        }
   );
   const allTimes = getTimeRange({
     startTime: "7:30",
@@ -84,7 +89,9 @@ const Details = ({
         ? "Please provide the purpose of your reservation."
         : "",
     date:
-      showErrors && !formData.date ? "Please choose at least one date." : "",
+      showErrors && (!formData.date || formData.date.length === 0)
+        ? "Please choose at least one date."
+        : "",
     startTime:
       showErrors && !formData.startTime ? "Please specify a start time." : "",
     endTime:
@@ -137,7 +144,12 @@ const Details = ({
             excludeDate={(date) => dayjs(date).day() === 0}
             firstDayOfWeek={0}
             value={formData.date?.map((d) => new Date(d))}
-            onChange={(val) => setFormData({ ...formData, date: val ?? [] })} //ignore
+            onChange={(val) =>
+              setFormData({
+                ...formData,
+                date: (val ?? []).map((v) => new Date(v)),
+              })
+            }
             error={errors.date}
           />
         </div>

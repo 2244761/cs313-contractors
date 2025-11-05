@@ -98,7 +98,6 @@ export const Menu = () => {
                     ${isOpen ? "gap-x-2" : "gap-x-0"}  
                     ${isActive ? tw.isActiveTab : tw.isNotActiveTab}`
                   }
-                  onClick={() => setIsOpen(false)} // Close sidebar when clicking link (mobile)
                 >
                   <div className="flex-shrink-0">
                     {item.icon && <item.icon size={"1.25rem"} />}

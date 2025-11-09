@@ -22,6 +22,7 @@ interface DetailsData {
 interface ResourceData {
   participants?: string[];
   equipments?: string[];
+  remarks?: string;
 }
 
 interface ReviewProps {
@@ -149,6 +150,16 @@ const Review = ({ details, resources, onAgreeChange }: ReviewProps) => {
             ]}
             value={resource.equipments?.map((e: string) => e)}
             disabled={!resource.equipments?.length ? true : false}
+          />
+        </div>
+
+        {/* Remarks */}
+        <div className="w-full">
+          <TextInput
+            readOnly
+            label="Remarks"
+            value={resource.remarks ? [resource.remarks] : undefined}
+            disabled={!resource.remarks?.length ? true : false}
           />
         </div>
 

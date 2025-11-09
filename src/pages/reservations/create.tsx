@@ -12,6 +12,7 @@ interface DetailsData {
 interface ResourceData {
   participants?: string[];
   equipments?: string[];
+  remarks?: string;
 }
 
 // Form Components
@@ -26,7 +27,7 @@ import { MantineProvider, Stepper } from "@mantine/core";
 import { TbClipboardText, TbUsersGroup, TbCheckupList } from "react-icons/tb";
 
 // Refine Import
-import { useGetIdentity } from "@refinedev/core";
+import { useGetIdentity, useList } from "@refinedev/core";
 import supabase from "../../config/supabaseClient";
 
 export const ReservationCreate = () => {
@@ -37,18 +38,31 @@ export const ReservationCreate = () => {
   const [resourcesData, setResourcesData] = useState<ResourceData>({});
   const [showErrors, setShowErrors] = useState(false);
 
-  const handleSubmit = () => {
+  // Fetch room table
+  const { result } = useList({ resource: "room" });
+
+  const handleSubmit = async () => {
     try {
       const userId = userData.user.id;
 
       if (!userId) throw new Error("You are not logged in.");
 
-      // DOUBLE CHECK
+      // Get the ids base from the name column
+      const matchedRooms = result?.data?.filter((room) =>
+        detailsData.room?.includes(room.name)
+      );
+
+      if (!matchedRooms || matchedRooms.length === 0) {
+        alert("No valid rooms selected!");
+        return;
+      }
+      const roomIds = matchedRooms.map((room) => room.id);
+
       // Call the SQL function directly
-      const result = supabase.rpc("create_room_reservation", {
+      const { error } = await supabase.rpc("create_room_reservation", {
         p_user_id: userId,
         p_purpose: detailsData.purpose,
-        p_room_id: detailsData.room?.map((room) => parseInt(room.toString())),
+        p_room_ids: roomIds,
         p_dates: Array.isArray(detailsData.date)
           ? detailsData.date
           : [detailsData.date],
@@ -57,16 +71,22 @@ export const ReservationCreate = () => {
         p_advisor: detailsData.advisor || null,
         p_equipments: resourcesData.equipments || null,
         p_participants: resourcesData.participants || null,
+        p_remarks: resourcesData.remarks || null,
       });
 
-      // if (error) throw error;
-
-      console.log("Reservation created:", result);
+      if (error) {
+        console.error(error);
+        alert(
+          `Error creating reservation: ${
+            error.message || JSON.stringify(error)
+          }`
+        );
+        return;
+      }
 
       alert("Reservation submitted successfully!");
-    } catch (error: any) {
-      console.error("Error creating reservation:", error);
-      alert("Error: " + error.message);
+    } catch (error) {
+      alert("Error: " + error);
     }
   };
 
@@ -109,7 +129,7 @@ export const ReservationCreate = () => {
         }}
       >
         <div className="flex justify-center items-center">
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} target=".">
             <div className="bg-white p-10 rounded flex flex-col gap-6 sm:gap-8 w-4xl max-w-xl">
               <Stepper
                 active={active}

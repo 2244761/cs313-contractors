@@ -1,7 +1,97 @@
+import { useGetIdentity } from "@refinedev/core";
+import supabase from "../config/supabaseClient";
+import { useEffect, useState } from "react";
+import { DataTable } from "./table/DataTable";
+import type { Reservation } from "../types/reservation";
+
 export const StudentDashboard = () => {
+  const { data, isLoading } = useGetIdentity();
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+
+  useEffect(() => {
+    const fetchReservations = async () => {
+      const userId = data?.user?.id;
+
+      if (!isLoading && userId) {
+        try {
+          await getReservations(userId);
+        } catch (err) {
+          console.error("Failed to fetch reservations:", err);
+        }
+      }
+    };
+
+    fetchReservations();
+  }, [isLoading, data]);
+
+  async function getReservations(userId: string) {
+    const { data, error } = await supabase.rpc("get_reservations_for_user", {
+      p_user_id: userId,
+    });
+
+    if (error) console.error(error);
+    setReservations(data);
+  }
+
+  // Testing
+  reservations.forEach((e) => console.log(e));
+
+  // Format data (e.g. 15:00:00+00) to human readable (3:00 PM)
+  function formatTime(time: string): string {
+    const date = new Date(`2001-09-11T${time.replace("+00", "Z")}`); // Dummy date, will be removed anyway
+
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+      timeZone: "UTC",
+    });
+  }
+
+  const columns = [
+    { header: "Purpose", accessor: "purpose" as keyof Reservation },
+    { header: "Type", accessor: "type" as keyof Reservation },
+    { header: "Status", accessor: "status" as keyof Reservation },
+    {
+      header: "Date(s)",
+      accessor: (item: Reservation) =>
+        item.schedules
+          ?.map((s: { date: string }) =>
+            new Date(s.date).toLocaleDateString("en-us", {
+              month: "short",
+              day: "numeric",
+            })
+          )
+          .join(", ") || "—",
+    },
+    {
+      header: "Start",
+      accessor: (item: Reservation) =>
+        item.schedules && item.schedules.length > 0
+          ? formatTime(item.schedules[0].start_time)
+          : "-",
+    },
+    {
+      header: "End",
+      accessor: (item: Reservation) =>
+        item.schedules && item.schedules.length > 0
+          ? formatTime(item.schedules[0].end_time)
+          : "-",
+    },
+    { header: "Advisor", accessor: "advisor" as keyof Reservation },
+  ];
+
   return (
-    <>
-      <div>Dashboard</div>
-    </>
+    <div>
+      <h1>Dashboard</h1>
+
+      <DataTable
+        data={reservations}
+        isLoading={isLoading}
+        gridColumns="grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
+        emptyMessage="You currently do not have any reservations"
+        columns={columns}
+      />
+    </div>
   );
 };

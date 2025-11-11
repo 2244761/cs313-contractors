@@ -11,7 +11,7 @@ import {
 import { Authenticated, Refine, ErrorComponent } from "@refinedev/core";
 import { dataProvider, liveProvider } from "@refinedev/supabase";
 import routerProvider, {
-  CatchAllNavigate,
+  // CatchAllNavigate,
   // NavigateToResource,
   UnsavedChangesNotifier,
 } from "@refinedev/react-router";
@@ -23,11 +23,11 @@ import { authProvider } from "./providers/auth-provider";
 
 // Components
 import { Login } from "./pages/Login";
-import { StudentDashboard } from "./components/StudentDashboard";
+import { StudentDashboard } from "./pages/StudentDashboard";
 import StudentCalendar from "./components/StudentCalendar";
-import { AdminDashboard } from "./components/AdminDashboard";
-import RoleRedirect from "./RoleRedirect";
-import { Layout } from "./components/layout";
+import { AdminDashboard } from "./pages/AdminDashboard";
+import RoleRedirect from "./utils/role-redirect";
+import { Layout } from "./components/layout/Layout";
 
 // Pages
 import { UserList } from "./pages/users";
@@ -63,11 +63,12 @@ function App() {
             }}
           >
             <Routes>
+              <Route path="/suspended" element={<Suspended />} />
               <Route
                 element={
                   <Authenticated
                     key="authenticated-inner"
-                    fallback={<CatchAllNavigate to="/login" />}
+                    // fallback={<CatchAllNavigate to="/login" />} // ! Temporary
                   >
                     <Layout>
                       <Outlet />
@@ -101,7 +102,6 @@ function App() {
                   </Authenticated>
                 }
               >
-                <Route path="/suspended" element={<Suspended />} />
                 <Route path="/login" element={<Login />} />
               </Route>
             </Routes>

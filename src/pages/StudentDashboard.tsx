@@ -1,7 +1,7 @@
 import { useGetIdentity } from "@refinedev/core";
 import supabase from "../config/supabaseClient";
 import { useEffect, useState } from "react";
-import { DataTable } from "./table/DataTable";
+import { DataTable } from "./../components/table/DataTable";
 import type { Reservation } from "../types/reservation";
 
 export const StudentDashboard = () => {
@@ -85,13 +85,15 @@ export const StudentDashboard = () => {
     <div>
       <h1>Dashboard</h1>
 
-      <DataTable
-        data={reservations}
-        isLoading={isLoading}
-        gridColumns="grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
-        emptyMessage="You currently do not have any reservations"
-        columns={columns}
-      />
+      <div className="rounded-lg p-6 bg-white flex flex-col gap-4 w-full h-full">
+        <DataTable
+          data={reservations}
+          isLoading={isLoading}
+          gridColumns="grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
+          emptyMessage="You currently do not have any reservations"
+          columns={columns}
+        />
+      </div>
     </div>
   );
 };

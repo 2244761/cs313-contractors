@@ -8,8 +8,8 @@ import { RxExit } from "react-icons/rx";
 import { BsLayoutSidebar, BsLayoutSidebarReverse } from "react-icons/bs";
 
 // Styles
-import { tw } from "../../utils/styles";
-import { getMenuItems } from "../../utils/menuItems";
+import { tw } from "../../styles/styles";
+import { getMenuItems } from "../../styles/menuItems";
 import sluLogo from "../../assets/images/slu-logo.png";
 
 export const Menu = () => {

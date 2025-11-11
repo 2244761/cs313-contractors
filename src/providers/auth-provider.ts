@@ -9,6 +9,18 @@ export const authProvider: AuthProvider = {
 
     if (!session) return { authenticated: false, redirectTo: "/login" };
 
+    const { data: userData, error } = await supabaseClient
+      .from("user")
+      .select("is_suspended")
+      .eq("id", session.user.id)
+      .single();
+
+    if (error) return { authenticated: false, redirectTo: "/login" };
+
+    if (userData?.is_suspended) {
+      return { authenticated: false, redirectTo: "/suspended" };
+    }
+
     return { authenticated: true, redirectTo: "/" };
   },
   login: async () => {

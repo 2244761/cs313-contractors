@@ -1,7 +1,7 @@
 import React, { type PropsWithChildren } from "react";
-import { Menu } from "../menu";
-import { Breadcrumb } from "../breadcrumb";
-import { UserInfo } from "../userinfo";
+import { Menu } from "./Menu";
+import { Breadcrumb } from "./Breadcrumb";
+import { UserInfo } from "../UserInfo";
 
 export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
   return (

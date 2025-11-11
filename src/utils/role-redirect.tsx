@@ -1,7 +1,8 @@
 import { useGetIdentity } from "@refinedev/core";
-import supabase from "./config/supabaseClient";
+import supabase from "../config/supabaseClient";
 import { Navigate } from "react-router";
 import { useEffect, useState } from "react";
+import { Loader, MantineProvider } from "@mantine/core";
 
 const RoleRedirect = () => {
   const { data, isLoading } = useGetIdentity();
@@ -24,6 +25,7 @@ const RoleRedirect = () => {
           .eq("id", userId)
           .single();
         if (error) console.error("An error occurred:", error.message);
+
         setType(userData?.type);
       }
     }
@@ -31,9 +33,20 @@ const RoleRedirect = () => {
     fetchUser();
   }, [data, isLoading]);
 
-  // if (isLoading) return <div>Loading...</div>;
   if (!data) return <Navigate to="/login" replace />;
-  if (!type) return <div>Loading...</div>;
+
+  // ! Fix position of Loader once the user logged in
+  if (!type || isLoading) {
+    return (
+      <>
+        <MantineProvider>
+          <div>
+            <Loader />
+          </div>
+        </MantineProvider>
+      </>
+    );
+  }
 
   // if (role === "student") {
   //   return <Navigate to="/student-dashboard" replace />;

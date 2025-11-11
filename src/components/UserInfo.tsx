@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useGetIdentity } from "@refinedev/core";
-import supabase from "../../config/supabaseClient";
+import supabase from "../config/supabaseClient";
 
 import { IoPersonCircleOutline } from "react-icons/io5";
 
@@ -40,7 +40,7 @@ export const UserInfo = () => {
   }, [data, isLoading]);
   return (
     <>
-      <div className="bg-[var(--accent)] text-[var(--primary-white)] p-3 flex items-center gap-4 rounded drop-shadow-xl">
+      <div className="bg-[var(--accent)] text-[var(--primary-white)] p-3 md:flex items-center gap-4 rounded drop-shadow-xl hidden">
         <div>
           {avatar ? (
             <img

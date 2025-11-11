@@ -1,5 +1,5 @@
 import { useLogin } from "@refinedev/core";
-import Header from "../assets/images/Header.png";
+import Header from "../assets/images/header-2.png";
 import googleLogo from "../assets/images/google-logo.png";
 
 export const Login = () => {
@@ -11,7 +11,7 @@ export const Login = () => {
         <img
           src={Header}
           alt="Saint Louis University"
-          className=" w-100 h-auto object-contain"
+          className="w-100 h-auto object-contain"
         />
         {/* Google Sign In */}
         <div className="flex flex-col gap-4">

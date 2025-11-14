@@ -2,7 +2,7 @@ import { useGetIdentity } from "@refinedev/core";
 import supabase from "../config/supabaseClient";
 import { useEffect, useState } from "react";
 import { DataTable } from "./../components/table/DataTable";
-import type { Reservation } from "../types/reservation";
+import type { Reservation } from "../utils/types";
 
 export const StudentDashboard = () => {
   const { data, isLoading } = useGetIdentity();

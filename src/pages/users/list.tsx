@@ -5,7 +5,7 @@ import { useTable } from "@refinedev/core";
 import { IoPersonCircleOutline } from "react-icons/io5";
 
 // Additional styling and components
-import { tw } from "../../styles/styles";
+import { tw } from "../../utils/styles/styles";
 import { NoResults } from "../../components/NoResults";
 import { SearchBar } from "../../components/SearchBar";
 
@@ -16,7 +16,7 @@ import { useEffect, useState } from "react";
 import { Loader, MantineProvider, Select } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import { DataTable } from "../../components/table/DataTable";
-import type { User } from "../../types/users";
+import type { User } from "../../utils/types/index";
 
 export const UserList: React.FC = () => {
   const gridColumns = "grid-cols-[2fr_1fr_1fr_1.5fr_1fr_1fr]";
@@ -126,8 +126,8 @@ export const UserList: React.FC = () => {
   return (
     <>
       <MantineProvider>
-        <div className="rounded-lg p-6 bg-white flex flex-col gap-4 w-full h-full">
-          <div className="max-w-[500px]">
+        <div className="bg-white flex flex-col w-full h-full rounded-xl">
+          <div className="max-w-[500px] p-4">
             <SearchBar
               placeholder="Search"
               data={users.map((u) => u.full_name)}

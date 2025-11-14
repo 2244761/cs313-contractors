@@ -26,6 +26,7 @@ export const SearchBar = ({
           onChange={onChange}
           clearable={true}
           disabled={disabled}
+          className="border-black"
         />
       </MantineProvider>
     </>

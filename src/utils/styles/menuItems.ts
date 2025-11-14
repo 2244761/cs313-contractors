@@ -31,8 +31,8 @@ export const getMenuItems = (type: string): MenuItem[] => {
           icon: FaRegCalendar,
         },
         {
-          label: "Reservations",
-          to: "/reservations",
+          label: "Reservation",
+          to: "/reservation",
           icon: GrCheckboxSelected,
         },
         {
@@ -40,10 +40,10 @@ export const getMenuItems = (type: string): MenuItem[] => {
           to: "/history",
           icon: FaRegClock,
         },
-        { label: "Users", to: "/users", icon: FiUsers },
+        { label: "User", to: "/user", icon: FiUsers },
         {
-          label: "Rooms",
-          to: "/rooms",
+          label: "Room",
+          to: "/room",
           icon: MdOutlineSensorDoor,
         },
         {
@@ -69,7 +69,7 @@ export const getMenuItems = (type: string): MenuItem[] => {
           icon: MdOutlineDashboard,
         },
         { label: "Calendar", to: "/calendar", icon: FaRegCalendar },
-        { label: "Rooms", to: "/rooms", icon: MdOutlineSensorDoor },
+        { label: "Room", to: "/room", icon: MdOutlineSensorDoor },
       ];
 
     default:

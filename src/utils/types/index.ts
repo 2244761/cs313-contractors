@@ -19,3 +19,24 @@ export interface Reservation {
   created_at: string;
   updated_at: string;
 }
+
+export interface Room {
+  id: number;
+  name: string;
+  room: string;
+  status: string;
+  description: string;
+  equipments: string[];
+  images: string[];
+  capacity: number;
+}
+
+export interface User {
+  avatar_url: string;
+  email: string;
+  full_name: string;
+  id: string;
+  identifier: string;
+  is_suspended: boolean;
+  type: string;
+}

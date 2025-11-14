@@ -30,9 +30,11 @@ import RoleRedirect from "./utils/role-redirect";
 import { Layout } from "./components/layout/Layout";
 
 // Pages
-import { UserList } from "./pages/users";
+import { UserList, UserShow } from "./pages/users";
 import { Suspended } from "./pages/Suspended";
-import { ReservationCreate } from "./pages/reservations";
+import { ReservationCreate, ReservationList } from "./pages/reservations";
+import { resources } from "./utils/resources";
+import { RoomCreate, RoomList, RoomShow } from "./pages/rooms";
 
 function App() {
   return (
@@ -44,22 +46,11 @@ function App() {
             liveProvider={liveProvider(supabaseClient)}
             routerProvider={routerProvider}
             authProvider={authProvider}
-            resources={[
-              { name: "calendar", list: "/calendar" },
-              {
-                name: "reservations",
-                list: "/reservations",
-                create: "/reservations/create",
-              },
-              { name: "history", list: "/history" },
-              { name: "rooms", list: "/rooms" },
-              { name: "users", list: "/users" },
-              { name: "announcement", list: "/announcement" },
-              { name: "inbox", list: "/inbox" },
-            ]}
+            resources={resources}
             options={{
               syncWithLocation: true,
               warnWhenUnsavedChanges: true,
+              liveMode: "auto",
             }}
           >
             <Routes>
@@ -83,12 +74,19 @@ function App() {
                 />
                 <Route path="/calendar" element={<StudentCalendar />} />
                 <Route path="/admin-dashboard" element={<AdminDashboard />} />
-                <Route path="/users">
+                <Route path="/user">
                   <Route index element={<UserList />}></Route>
+                  <Route path="show/:id" element={<UserShow />} />
                 </Route>
-                <Route path="/reservations">
-                  {/* <Route index element={<ReservationList />}></Route> */}
+                <Route path="/reservation">
+                  <Route index element={<ReservationList />}></Route>
                   <Route path="create" element={<ReservationCreate />} />
+                </Route>
+                <Route path="/room">
+                  <Route index element={<RoomList />}></Route>
+                  <Route path="create" element={<RoomCreate />} />
+                  <Route path="show/:id" element={<RoomShow />} />
+                  <Route path="edit/:id" element={<RoomCreate />} />
                 </Route>
                 <Route path="*" element={<ErrorComponent />} />
               </Route>

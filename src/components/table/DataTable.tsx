@@ -4,6 +4,7 @@ import {
   MdOutlineArrowForwardIos,
 } from "react-icons/md";
 import { NoResults } from "../NoResults";
+import { useGo } from "@refinedev/core";
 
 interface Column<T> {
   header: string;
@@ -25,7 +26,7 @@ interface DataTableProps<T> {
   emptyMessage?: string;
 }
 
-export function DataTable<T>({
+export function DataTable<T extends { id: string | number }>({
   data,
   columns,
   gridColumns,
@@ -38,6 +39,8 @@ export function DataTable<T>({
   renderActions,
   emptyMessage = "",
 }: DataTableProps<T>) {
+  const go = useGo();
+
   if (isLoading) {
     return (
       <MantineProvider>
@@ -58,15 +61,17 @@ export function DataTable<T>({
 
   return (
     data && (
-      <div className="h-full flex flex-col justify-between bg-white">
+      <div className="h-full flex flex-col justify-between bg-white rounded-xl">
         {/* Desktop / Tablet Table */}
         {/* Not Finalized */}
         <div className="hidden xl:block">
           <table className="w-full text-left">
-            <thead className="border-b border-[var(--primary-dark)]">
-              <tr className={`grid ${gridColumns} items-center py-4`}>
+            <thead className="border-b border-gray-200 ">
+              <tr
+                className={`grid ${gridColumns} items-center p-4 text-gray-500`}
+              >
                 {columns.map((col, index) => (
-                  <th key={index} className={col.className}>
+                  <th key={index} className="font-medium">
                     {col.header}
                   </th>
                 ))}
@@ -78,10 +83,18 @@ export function DataTable<T>({
               {data.map((item, index) => (
                 <tr
                   key={index}
-                  className={`grid items-center ${gridColumns} ${
-                    index !== data.length - 1 &&
-                    "border-b border-[var(--ui-border)]"
-                  }`}
+                  className={`grid px-4 items-center hover:bg-gray-100 transition-all duration-150 cursor-pointer 
+                    ${gridColumns}`}
+                  // className={`grid px-4 items-center hover:bg-gray-100 transition-all duration-150 cursor-pointer
+                  //   ${gridColumns} ${
+                  //   index !== data.length - 1 &&
+                  //   "border-b border-[var(--ui-border)]"
+                  // }`}
+                  onClick={() =>
+                    go({
+                      to: `show/${item.id}`,
+                    })
+                  }
                 >
                   {columns.map((col, i) => {
                     const value =
@@ -89,13 +102,18 @@ export function DataTable<T>({
                         ? col.accessor(item)
                         : (item[col.accessor] as React.ReactNode);
                     return (
-                      <td key={i} className="py-2">
+                      <td key={i} className="py-4">
                         {value}
                       </td>
                     );
                   })}
                   {renderActions && (
-                    <td className="py-2">{renderActions(item)}</td>
+                    <td className="py-4 z-100">
+                      {/* Prevent from entering the show tab */}
+                      <div onClick={(e) => e.stopPropagation()}>
+                        {renderActions(item)}
+                      </div>
+                    </td>
                   )}
                 </tr>
               ))}

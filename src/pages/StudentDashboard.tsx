@@ -87,7 +87,7 @@ export const StudentDashboard = () => {
 
       <div className="rounded-lg p-6 bg-white flex flex-col gap-4 w-full h-full">
         <DataTable
-          data={reservations}
+          data={reservations.map((r) => ({ ...r, id: r.reservation_id }))}
           isLoading={isLoading}
           gridColumns="grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
           emptyMessage="You currently do not have any reservations"

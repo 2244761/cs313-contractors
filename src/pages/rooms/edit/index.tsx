@@ -1,20 +1,24 @@
 import { Loader, MantineProvider } from "@mantine/core";
-import { useOne, useUpdate } from "@refinedev/core";
+import { useOne } from "@refinedev/core";
+import { useEffect, useState } from "react";
+import type { Room } from "../../../utils/types";
 
-interface RoomEditProps {
-  roomId: number;
-}
+export const RoomEdit = ({ id }: Room) => {
+  const [room, setRoom] = useState<Room>();
 
-export const RoomEdit = ({ roomId }: RoomEditProps) => {
   const {
     result,
     query: { isLoading },
-  } = useOne({ resource: "room", id: roomId });
+  } = useOne({ resource: "room", id: id });
 
-  const {
-    mutate,
-    mutation: { isPending },
-  } = useUpdate();
+  // const {
+  //   mutate,
+  //   mutation: { isPending },
+  // } = useUpdate();
+
+  useEffect(() => {
+    if (result) setRoom(result.data);
+  }, [result]);
 
   if (isLoading) {
     return (
@@ -30,5 +34,5 @@ export const RoomEdit = ({ roomId }: RoomEditProps) => {
   //   await mutate
   // }
 
-  return <div>RoomCreate</div>;
+  return <div>{room?.id}</div>;
 };

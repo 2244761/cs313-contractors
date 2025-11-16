@@ -6,12 +6,13 @@ export interface Schedule {
 
 export interface Reservation {
   reservation_id: number;
+  reservation_code: string;
   user_id: string;
+  full_name: string;
   advisor: string;
   purpose: string;
   remarks: string;
   status: string;
-  type: string;
   equipments: string[];
   participants: string[];
   room_ids: number[];

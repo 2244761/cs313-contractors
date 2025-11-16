@@ -7,6 +7,7 @@ interface DetailsData {
   startTime?: string;
   endTime?: string;
   advisor?: string;
+  remarks?: string;
 }
 
 interface ResourceData {
@@ -59,7 +60,7 @@ export const ReservationCreate = () => {
       const roomIds = matchedRooms.map((room) => room.id);
 
       // Call the SQL function directly
-      const { error } = await supabase.rpc("create_room_reservation", {
+      const { error } = await supabase.rpc("create_reservation", {
         p_user_id: userId,
         p_purpose: detailsData.purpose,
         p_room_ids: roomIds,
@@ -69,9 +70,9 @@ export const ReservationCreate = () => {
         p_start_time: detailsData.startTime,
         p_end_time: detailsData.endTime,
         p_advisor: detailsData.advisor || null,
+        p_remarks: detailsData.remarks || null,
         p_equipments: resourcesData.equipments || null,
         p_participants: resourcesData.participants || null,
-        p_remarks: resourcesData.remarks || null,
       });
 
       if (error) {

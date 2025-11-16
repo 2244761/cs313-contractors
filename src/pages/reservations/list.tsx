@@ -32,7 +32,7 @@ export const ReservationList: React.FC = () => {
     pageCount,
     setFilters,
   } = useTable<Reservation>({
-    resource: "admin_all_reservations_view",
+    resource: "admin_get_reservation",
     pagination: { currentPage: 1, pageSize: 10 },
     sorters: { initial: [{ field: "reservation_id", order: "asc" }] },
 
@@ -126,10 +126,10 @@ export const ReservationList: React.FC = () => {
 
   const columns = [
     {
-      header: "Reservation ID",
-      accessor: "reservation_id" as keyof Reservation,
+      header: "Code",
+      accessor: "reservation_code" as keyof Reservation,
     },
-    { header: "User ID", accessor: "user_id" as keyof Reservation },
+    { header: "User", accessor: "full_name" as keyof Reservation },
     { header: "Purpose", accessor: "purpose" as keyof Reservation },
     // { header: "Type", accessor: "type" as keyof Reservation },
     { header: "Status", accessor: "status" as keyof Reservation },
@@ -168,7 +168,7 @@ export const ReservationList: React.FC = () => {
           <div className="max-w-[500px] p-4">
             <SearchBar
               placeholder="Search"
-              data={reservations.map((r) => r.purpose)}
+              data={reservations.map((r) => r.reservation_code)}
               onChange={(value) => {
                 setSearchValue(value);
               }}

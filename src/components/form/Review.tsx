@@ -17,12 +17,12 @@ interface DetailsData {
   startTime?: string;
   endTime?: string;
   advisor?: string;
+  remarks?: string;
 }
 
 interface ResourceData {
   participants?: string[];
   equipments?: string[];
-  remarks?: string;
 }
 
 interface ReviewProps {
@@ -158,8 +158,8 @@ const Review = ({ details, resources, onAgreeChange }: ReviewProps) => {
           <TextInput
             readOnly
             label="Remarks"
-            value={resource.remarks ? [resource.remarks] : undefined}
-            disabled={!resource.remarks?.length ? true : false}
+            value={detail.remarks ? [detail.remarks] : undefined}
+            disabled={!detail.remarks?.length ? true : false}
           />
         </div>
 

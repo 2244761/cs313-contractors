@@ -11,7 +11,6 @@ import { MdDelete } from "react-icons/md";
 interface FormData {
   participants?: string[];
   equipments?: string[];
-  remarks?: string;
 }
 
 interface ResourcesProps {
@@ -29,7 +28,6 @@ const Resources = ({ onDetailsChange, initialData }: ResourcesProps) => {
           ? initialParticipants
           : ([""] as string[]),
       equipments: initialData?.equipments || ([] as string[]),
-      remarks: initialData?.remarks || "",
     };
   });
 
@@ -115,20 +113,6 @@ const Resources = ({ onDetailsChange, initialData }: ResourcesProps) => {
             value={formData.equipments?.map((e: string) => e)}
             onChange={(val) =>
               setFormData({ ...formData, equipments: val ?? [] })
-            }
-          />
-        </div>
-        <div>
-          <TextInput
-            label="Remarks"
-            description="Class Code or specific research."
-            placeholder="CS 311, Thesis, Capstone"
-            value={formData.remarks}
-            onChange={(val) =>
-              setFormData({
-                ...formData,
-                remarks: val.currentTarget.value ?? "",
-              })
             }
           />
         </div>

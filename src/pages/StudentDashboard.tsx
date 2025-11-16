@@ -5,16 +5,14 @@ import { DataTable } from "./../components/table/DataTable";
 import type { Reservation } from "../utils/types";
 
 export const StudentDashboard = () => {
-  const { data, isLoading } = useGetIdentity();
+  const { isLoading } = useGetIdentity();
   const [reservations, setReservations] = useState<Reservation[]>([]);
 
   useEffect(() => {
     const fetchReservations = async () => {
-      const userId = data?.user?.id;
-
-      if (!isLoading && userId) {
+      if (!isLoading) {
         try {
-          await getReservations(userId);
+          await getReservations();
         } catch (err) {
           console.error("Failed to fetch reservations:", err);
         }
@@ -22,19 +20,13 @@ export const StudentDashboard = () => {
     };
 
     fetchReservations();
-  }, [isLoading, data]);
+  }, [isLoading]);
 
-  async function getReservations(userId: string) {
-    const { data, error } = await supabase.rpc("get_reservations_for_user", {
-      p_user_id: userId,
-    });
-
+  async function getReservations() {
+    const { data, error } = await supabase.rpc("get_reservation");
     if (error) console.error(error);
     setReservations(data);
   }
-
-  // Testing
-  reservations.forEach((e) => console.log(e));
 
   // Format data (e.g. 15:00:00+00) to human readable (3:00 PM)
   function formatTime(time: string): string {
@@ -50,7 +42,6 @@ export const StudentDashboard = () => {
 
   const columns = [
     { header: "Purpose", accessor: "purpose" as keyof Reservation },
-    { header: "Type", accessor: "type" as keyof Reservation },
     { header: "Status", accessor: "status" as keyof Reservation },
     {
       header: "Date(s)",

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { DatePickerInput, getTimeRange, TimePicker } from "@mantine/dates";
-import { MantineProvider, MultiSelect, Select } from "@mantine/core";
+import { MantineProvider, MultiSelect, Select, TextInput } from "@mantine/core";
 import { TbCalendar } from "react-icons/tb";
 import dayjs from "dayjs";
 import { useList } from "@refinedev/core";
@@ -12,6 +12,7 @@ interface FormData {
   startTime?: string;
   endTime?: string;
   advisor?: string;
+  remarks?: string;
 }
 
 interface DetailsProps {
@@ -42,6 +43,7 @@ const Details = ({
           startTime: "",
           endTime: "",
           advisor: "",
+          remarks: "",
         }
   );
   const allTimes = getTimeRange({
@@ -99,6 +101,10 @@ const Details = ({
     advisor:
       showErrors && !formData.advisor
         ? "Please select your advisor’s name."
+        : "",
+    remarks:
+      showErrors && !formData.remarks
+        ? "Please enter the purpose of this reservation"
         : "",
   };
 
@@ -196,6 +202,22 @@ const Details = ({
             value={formData.advisor}
             onChange={(val) => setFormData({ ...formData, advisor: val ?? "" })}
             error={errors.advisor}
+          />
+        </div>
+
+        <div className="w-full">
+          <TextInput
+            label="Remarks"
+            description="Class Code or specific research."
+            placeholder="CS 311, Thesis, Capstone"
+            value={formData.remarks}
+            onChange={(val) =>
+              setFormData({
+                ...formData,
+                remarks: val.currentTarget.value ?? "",
+              })
+            }
+            error={errors.remarks}
           />
         </div>
       </div>

@@ -17,7 +17,7 @@ export interface MenuItem {
 
 export const getMenuItems = (type: string): MenuItem[] => {
   switch (type) {
-    case "ADMIN":
+    case "Admin":
       return [
         {
           label: "Dashboard",
@@ -54,13 +54,13 @@ export const getMenuItems = (type: string): MenuItem[] => {
         { label: "Inbox", to: "/inbox", icon: LuMail },
       ];
 
-    case "INSTRUCTOR":
+    case "Instructor":
       return [
         { label: "Dashboard", to: "/professor-dashboard" },
         { label: "My Schedule", to: "/calendar" },
       ];
 
-    case "STUDENT":
+    case "Student":
       return [
         {
           label: "Dashboard",

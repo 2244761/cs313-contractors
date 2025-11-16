@@ -147,7 +147,7 @@ const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
 
           {/* Right Controls */}
           <div className="flex items-center gap-3 mr-3 relative">
-            <Link to="/reservations/create">
+            <Link to="/reservation/create">
               <IoAddCircleSharp className="text-4xl cursor-pointer text-[var(--primary)] hover:text-[var(--primary-hover)] transition" />
             </Link>
 

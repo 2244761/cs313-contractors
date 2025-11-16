@@ -42,7 +42,7 @@ export const UserList: React.FC = () => {
         {
           field: "type",
           operator: "ne",
-          value: "ADMIN",
+          value: "Admin",
         },
       ],
       initial: [

@@ -9,6 +9,7 @@ import { Loader, MantineProvider, Select } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import { DataTable } from "../../components/table/DataTable";
 import type { Reservation } from "../../utils/types";
+import { Search } from "../../components/Search";
 // import supabase from "../../config/supabaseClient";
 
 export const ReservationList: React.FC = () => {
@@ -20,7 +21,6 @@ export const ReservationList: React.FC = () => {
   const [selectValue, setSelectValue] = useState<string | null>("");
   const [reservations, setReservations] = useState<Reservation[]>([]);
 
-  setSearchValue("");
   const {
     result,
     tableQuery: { isLoading, refetch },
@@ -82,6 +82,14 @@ export const ReservationList: React.FC = () => {
     {
       header: "Code",
       accessor: "reservation_code" as keyof Reservation,
+      action: (
+        <Search
+          placeholder="Search reservations"
+          data={reservations.map((r) => r.reservation_code)}
+          onChange={(value) => setSearchValue(value)}
+          value={searchValue}
+        />
+      ),
     },
     { header: "User", accessor: "full_name" as keyof Reservation },
     { header: "Purpose", accessor: "purpose" as keyof Reservation },

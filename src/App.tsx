@@ -38,7 +38,7 @@ import {
   ReservationShow,
 } from "./pages/reservations";
 import { resources } from "./utils/resources";
-import { RoomCreate, RoomList, RoomShow } from "./pages/rooms";
+import { RoomCreate, RoomEdit, RoomList, RoomShow } from "./pages/rooms";
 import { ReservationEdit } from "./pages/reservations/edit";
 // import { ErrorComponent } from "./pages/ErrorComponent";
 
@@ -94,7 +94,7 @@ function App() {
                   <Route index element={<RoomList />}></Route>
                   <Route path="create" element={<RoomCreate />} />
                   <Route path="show/:id" element={<RoomShow />} />
-                  <Route path="edit/:id" element={<RoomCreate />} />
+                  <Route path="edit/:id" element={<RoomEdit />} />
                 </Route>
                 <Route path="*" element={<ErrorComponent />} />
               </Route>

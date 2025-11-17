@@ -1,24 +1,47 @@
-import { Loader, MantineProvider } from "@mantine/core";
-import { useOne } from "@refinedev/core";
+import {
+  Loader,
+  MantineProvider,
+  NumberInput,
+  Select,
+  Textarea,
+  TextInput,
+} from "@mantine/core";
+import { useShow, useUpdate } from "@refinedev/core";
 import { useEffect, useState } from "react";
 import type { Room } from "../../../utils/types";
 
-export const RoomEdit = ({ id }: Room) => {
+export const RoomEdit = () => {
+  // Store the fetched room data
   const [room, setRoom] = useState<Room>();
 
-  const {
-    result,
-    query: { isLoading },
-  } = useOne({ resource: "room", id: id });
+  const [name, setName] = useState<string>();
+  const [specificRoom, setSpecificRoom] = useState<string>();
+  const [description, setDescription] = useState<string>();
+  const [status, setStatus] = useState<string>();
+  const [capacity, setCapacity] = useState<number>();
 
-  // const {
-  //   mutate,
-  //   mutation: { isPending },
-  // } = useUpdate();
+  // Fetch the data from the database
+  const {
+    query: { data, isLoading, error, isFetching },
+  } = useShow<Room>();
+
+  const {
+    mutate,
+    mutation: { isPending: isUpdating },
+  } = useUpdate();
 
   useEffect(() => {
-    if (result) setRoom(result.data);
-  }, [result]);
+    if (data) setRoom(data.data);
+    if (room) {
+      setName(room.name);
+      setSpecificRoom(room.room);
+      setDescription(room.description);
+      setStatus(room.status);
+      setCapacity(room.capacity);
+    }
+  }, [data, room]);
+
+  if (error) return <p>Error: {error.message}</p>;
 
   if (isLoading) {
     return (
@@ -30,9 +53,91 @@ export const RoomEdit = ({ id }: Room) => {
     );
   }
 
-  // const updateRoom = async () => {
-  //   await mutate
-  // }
+  const handleUpdate = async () => {
+    await mutate({
+      resource: "room",
+      id: room?.id,
+      values: {
+        name: name,
+        room: specificRoom,
+        status: status,
+        description: description,
+        capacity: capacity,
+        // room: room.room,
+        // status: room.status,
+        // description: room.description,
+        // capacity: room.capacity,
+      },
+    });
+  };
 
-  return <div>{room?.id}</div>;
+  console.log(room);
+
+  return (
+    <MantineProvider>
+      <div className="flex justify-center items-center">
+        <form
+          onSubmit={handleUpdate}
+          className="w-2xl h-max bg-white rounded-xl p-8 border border-gray-200 flex flex-col gap-4"
+        >
+          <div>
+            <TextInput
+              label="Facility"
+              value={name ?? "Undefined"}
+              onChange={(e) => setName(e.currentTarget.value)}
+            />
+          </div>
+          <div>
+            <TextInput
+              value={specificRoom ?? "Undefined"}
+              label="Room"
+              onChange={(e) => setSpecificRoom(e.currentTarget.value)}
+              // onChange={(e) =>
+              //   setRoom((prev) => ({ ...prev, room: e.currentTarget.value }))
+              // }
+            />
+          </div>
+          <div>
+            <Textarea
+              value={description ?? "Undefined"}
+              label="Description"
+              styles={{ input: { height: 150 } }}
+              onChange={(e) => setDescription(e.currentTarget.value)}
+              // onChange={(e) =>
+              //   setRoom((prev) => ({
+              //     ...prev,
+              //     description: e.currentTarget.value,
+              //   }))
+              // }
+            />
+          </div>
+          <div>
+            <NumberInput
+              value={capacity ?? 0}
+              label="Capacity"
+              onChange={(value) => setCapacity(Number(value))}
+              // onChange={(value) =>
+              //   setRoom((prev) => ({ ...prev, capacity: Number(value) }))
+              // }
+            />
+            <div>
+              <Select
+                data={["Available", "Unavailable"]}
+                value={status ?? "Undefined"}
+                label="Status"
+                onChange={(value) => setStatus(value ?? "Available")}
+              />
+            </div>
+          </div>
+          <button
+            type="submit"
+            disabled={isUpdating || isFetching}
+            className="p-3 bg-[var(--primary)] cursor-pointer text-white rounded"
+          >
+            Submit
+          </button>
+        </form>
+      </div>
+    </MantineProvider>
+  );
 };

@@ -8,7 +8,7 @@ import { LuPencilLine } from "react-icons/lu";
 import { MdDelete } from "react-icons/md";
 
 export const RoomList: React.FC = () => {
-  const gridColumns = "grid-cols-[1fr_1fr_1fr_1fr_1fr]";
+  const gridColumns = "grid-cols-[1fr_1fr_1fr_1fr]";
 
   const go = useGo();
   const {
@@ -36,10 +36,6 @@ export const RoomList: React.FC = () => {
   }
 
   const columns = [
-    {
-      header: "ID",
-      accessor: "id" as keyof Room,
-    },
     {
       header: "Facility",
       accessor: "name" as keyof Room,
@@ -76,7 +72,7 @@ export const RoomList: React.FC = () => {
                     title="Show Room"
                     onClick={() =>
                       go({
-                        to: `show/${room.id}`,
+                        to: `edit/${room.id}`,
                       })
                     }
                   >

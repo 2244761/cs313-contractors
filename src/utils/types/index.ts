@@ -27,7 +27,6 @@ export interface Room {
   room: string;
   status: string;
   description: string;
-  equipments: string[];
   images: string[];
   capacity: number;
 }

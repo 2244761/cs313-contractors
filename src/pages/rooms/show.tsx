@@ -1,5 +1,11 @@
-import { Loader, MantineProvider } from "@mantine/core";
-import { useShow } from "@refinedev/core";
+import {
+  Loader,
+  MantineProvider,
+  NumberInput,
+  Textarea,
+  TextInput,
+} from "@mantine/core";
+import { useList, useShow } from "@refinedev/core";
 import { useEffect, useState } from "react";
 import type { Room } from "../../utils/types";
 
@@ -8,6 +14,8 @@ export const RoomShow = () => {
   const {
     query: { data, isLoading, error },
   } = useShow<Room>();
+
+  // const { query: roomList } = useList<Room>({ resource: "room" });
 
   useEffect(() => {
     if (data) setRoom(data.data);
@@ -26,9 +34,40 @@ export const RoomShow = () => {
   }
 
   return (
-    <div>
-      <h1>{room?.name ?? "Test"}</h1>
-      <p>Capacity: {room?.capacity ?? "Test2"}</p>
-    </div>
+    <MantineProvider>
+      <div className="w-max h-max bg-white rounded-xl p-4 border border-gray-200">
+        <div>
+          <TextInput
+            value={room?.name ?? "Undefined"}
+            readOnly
+            label="Facility"
+          />
+        </div>
+        <div>
+          <TextInput value={room?.room ?? "Undefined"} readOnly label="Room" />
+        </div>
+        <div>
+          <Textarea
+            value={room?.description ?? "Undefined"}
+            readOnly
+            label="Description"
+          />
+        </div>
+        <div>
+          <NumberInput
+            value={room?.capacity ?? "Undefined"}
+            readOnly
+            label="Capacity"
+          />
+        </div>
+        <div>
+          <TextInput
+            value={room?.status ?? "Undefined"}
+            readOnly
+            label="Status"
+          />
+        </div>
+      </div>
+    </MantineProvider>
   );
 };

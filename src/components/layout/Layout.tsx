@@ -1,7 +1,7 @@
 import React, { type PropsWithChildren } from "react";
 import { Menu } from "./Menu";
 import { Breadcrumb } from "./Breadcrumb";
-import { UserInfo } from "../UserInfo";
+// import { UserInfo } from "../UserInfo";
 
 export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
   return (
@@ -13,7 +13,7 @@ export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
         <div className="content w-full h-full p-8 flex flex-col gap-8">
           <div className="flex justify-between w-full items-center">
             <Breadcrumb />
-            <UserInfo />
+            {/* <UserInfo /> */}
           </div>
           <div className="flex-1">{children}</div>
         </div>

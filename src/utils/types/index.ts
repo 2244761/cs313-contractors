@@ -5,7 +5,7 @@ export interface Schedule {
 }
 
 export interface Reservation {
-  reservation_id: number;
+  id: string;
   reservation_code: string;
   user_id: string;
   full_name: string;

@@ -8,7 +8,7 @@ import {
   IoIosArrowDown,
 } from "react-icons/io";
 import { Link } from "react-router";
-import supabase from "../../config/supabaseClient";
+import supabase from "../../../config/supabaseClient";
 
 import {
   type CalendarEvent,

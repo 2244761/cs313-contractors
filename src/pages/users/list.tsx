@@ -6,8 +6,6 @@ import { IoPersonCircleOutline } from "react-icons/io5";
 
 // Additional styling and components
 import { tw } from "../../utils/styles/styles";
-import { NoResults } from "../../components/NoResults";
-import { SearchBar } from "../../components/SearchBar";
 
 // React Import
 import { useEffect, useState } from "react";
@@ -17,6 +15,8 @@ import { Loader, MantineProvider, Select } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import { DataTable } from "../../components/table/DataTable";
 import type { User } from "../../utils/types/index";
+import { Search } from "../../components/Search";
+import { Filter } from "../../components/Filter";
 
 export const UserList: React.FC = () => {
   const gridColumns = "grid-cols-[2fr_1fr_1fr_1.5fr_1fr_1fr]";
@@ -33,18 +33,21 @@ export const UserList: React.FC = () => {
     setCurrentPage,
     pageCount,
     setFilters,
+    sorters,
+    setSorters,
   } = useTable<User>({
     resource: "user",
     pagination: { currentPage: 1, pageSize: 10 },
     sorters: { initial: [{ field: "id", order: "asc" }] },
     filters: {
-      permanent: [
-        {
-          field: "type",
-          operator: "ne",
-          value: "Admin",
-        },
-      ],
+      // ! Disabled Temporarily
+      // permanent: [
+      //   {
+      //     field: "type",
+      //     operator: "ne",
+      //     value: "Admin",
+      //   },
+      // ],
       initial: [
         {
           field: "full_name",
@@ -87,6 +90,26 @@ export const UserList: React.FC = () => {
     );
   }
 
+  const getSorter = (field: string) => {
+    const sorter = sorters?.find((s) => s.field === field);
+
+    if (sorter) return sorter.order;
+  };
+
+  const onSort = (field: string) => {
+    const sorter = getSorter(field);
+    setSorters(
+      sorter === "desc"
+        ? []
+        : [
+            {
+              field,
+              order: sorter === "asc" ? "desc" : "asc",
+            },
+          ]
+    );
+  };
+
   const columns = [
     {
       header: "Full Name",
@@ -106,10 +129,30 @@ export const UserList: React.FC = () => {
           <span>{user.full_name}</span>
         </div>
       ),
+      action: (
+        <Search
+          placeholder="Search Users"
+          data={users.map((u) => u.full_name)}
+          onChange={(value) => setSearchValue(value)}
+          value={searchValue}
+        />
+      ),
     },
-    { header: "Type", accessor: "type" as keyof User },
-    { header: "Identifier", accessor: "identifier" as keyof User },
-    { header: "Email", accessor: "email" as keyof User },
+    {
+      header: "Type",
+      accessor: "type" as keyof User,
+      action: <Filter onClick={() => onSort("type")} />,
+    },
+    {
+      header: "Identifier",
+      accessor: "identifier" as keyof User,
+      action: <Filter onClick={() => onSort("identifier")} />,
+    },
+    {
+      header: "Email",
+      accessor: "email" as keyof User,
+      action: <Filter onClick={() => onSort("email")} />,
+    },
     {
       header: "Status",
       accessor: (user: User) => (
@@ -121,51 +164,33 @@ export const UserList: React.FC = () => {
           {user.is_suspended === false ? "Active" : "Suspended"}
         </div>
       ),
+      action: <Filter onClick={() => onSort("is_suspended")} />,
     },
   ];
   return (
     <>
       <MantineProvider>
-        <div className="bg-white flex flex-col w-full h-full rounded-xl">
-          <div className="max-w-[500px] p-4">
-            <SearchBar
-              placeholder="Search"
-              data={users.map((u) => u.full_name)}
-              onChange={(value) => {
-                setSearchValue(value);
-                refetch();
-              }}
-            />
-          </div>
-
-          {users.length === 0 ? (
-            <NoResults
-              heading={"No Users found"}
-              subheading="We couldn’t find any users at the moment."
-            />
-          ) : (
-            <DataTable
-              data={users}
-              gridColumns={gridColumns}
-              columns={columns}
-              isLoading={isLoading}
-              currentPage={currentPage}
-              pageCount={pageCount}
-              onPrevious={() => setCurrentPage(Math.max(currentPage - 1, 1))}
-              onNext={() =>
-                setCurrentPage(Math.min(currentPage + 1, pageCount))
-              }
-              onPage={(page) => setCurrentPage(page)}
-              renderActions={() => (
-                <Select
-                  placeholder="..."
-                  data={[]}
-                  value={selectValue}
-                  onChange={setSelectValue}
-                />
-              )}
-            />
-          )}
+        <div className="flex flex-col w-full h-full rounded-xl">
+          <DataTable
+            data={users}
+            gridColumns={gridColumns}
+            columns={columns}
+            isLoading={isLoading}
+            currentPage={currentPage}
+            pageCount={pageCount}
+            onPrevious={() => setCurrentPage(Math.max(currentPage - 1, 1))}
+            onNext={() => setCurrentPage(Math.min(currentPage + 1, pageCount))}
+            onPage={(page) => setCurrentPage(page)}
+            renderActions={() => (
+              <Select
+                placeholder="..."
+                data={[]}
+                value={selectValue}
+                onChange={setSelectValue}
+              />
+            )}
+            emptyMessage="We couldn’t find any users at the moment."
+          />
         </div>
       </MantineProvider>
     </>

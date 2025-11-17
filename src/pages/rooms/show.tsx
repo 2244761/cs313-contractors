@@ -5,7 +5,7 @@ import {
   Textarea,
   TextInput,
 } from "@mantine/core";
-import { useList, useShow } from "@refinedev/core";
+import { useShow } from "@refinedev/core";
 import { useEffect, useState } from "react";
 import type { Room } from "../../utils/types";
 

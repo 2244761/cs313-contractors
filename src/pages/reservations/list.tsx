@@ -1,10 +1,6 @@
 // Refine Dev Class
 import { useTable } from "@refinedev/core";
 
-// Additional styling and components
-import { NoResults } from "../../components/NoResults";
-import { SearchBar } from "../../components/SearchBar";
-
 // React Import
 import { useEffect, useState } from "react";
 
@@ -32,26 +28,9 @@ export const ReservationList: React.FC = () => {
     pageCount,
     setFilters,
   } = useTable<Reservation>({
-    resource: "admin_get_reservation",
+    resource: "admin_reservation",
     pagination: { currentPage: 1, pageSize: 10 },
-    sorters: { initial: [{ field: "reservation_id", order: "asc" }] },
-
-    // filters: {
-    //   permanent: [
-    //     {
-    //       field: "type",
-    //       operator: "ne",
-    //       value: "ADMIN",
-    //     },
-    //   ],
-    //   initial: [
-    //     {
-    //       field: "full_name",
-    //       operator: "contains",
-    //       value: "",
-    //     },
-    //   ],
-    // },
+    sorters: { initial: [{ field: "id", order: "asc" }] },
     queryOptions: {
       enabled: true,
       refetchOnWindowFocus: false,
@@ -75,33 +54,7 @@ export const ReservationList: React.FC = () => {
     refetch();
   }, [debounced]);
 
-  // useEffect(() => {
-  //   const fetchReservations = async () => {
-  //     if (!isLoading) {
-  //       try {
-  //         await getReservations();
-  //       } catch (err) {
-  //         console.error("Failed to fetch reservations:", err);
-  //       }
-  //     }
-  //   };
-
-  //   fetchReservations();
-  // }, [isLoading, data]);
-
-  // async function getReservations() {
-  //   const { data, error } = await supabase.rpc("admin_get_reservations");
-
-  //   if (error) {
-  //     console.error(error);
-  //   }
-  //   setReservations(data);
-  // }
-
-  // // Testing
-  // reservations.forEach((e) => console.log(e));
-
-  // // Fetching Data
+  // Fetching Data
   if (isLoading && reservations.length === 0) {
     return (
       <MantineProvider>
@@ -164,45 +117,28 @@ export const ReservationList: React.FC = () => {
   return (
     <>
       <MantineProvider>
-        <div className="bg-white flex flex-col w-full h-full rounded-xl">
-          <div className="max-w-[500px] p-4">
-            <SearchBar
-              placeholder="Search"
-              data={reservations.map((r) => r.reservation_code)}
-              onChange={(value) => {
-                setSearchValue(value);
-              }}
-            />
-          </div>
-
-          {!isLoading && reservations.length === 0 ? (
-            <NoResults
-              heading={"No Reservation found"}
-              subheading="We couldn’t find any reservation at the moment."
-            />
-          ) : (
-            <DataTable
-              data={reservations.map((r) => ({ ...r, id: r.reservation_id }))}
-              gridColumns={gridColumns}
-              columns={columns}
-              isLoading={isLoading}
-              currentPage={currentPage}
-              pageCount={pageCount}
-              onPrevious={() => setCurrentPage(Math.max(currentPage - 1, 1))}
-              onNext={() =>
-                setCurrentPage(Math.min(currentPage + 1, pageCount))
-              }
-              onPage={(page) => setCurrentPage(page)}
-              renderActions={() => (
-                <Select
-                  placeholder="..."
-                  data={[]}
-                  value={selectValue}
-                  onChange={setSelectValue}
-                />
-              )}
-            />
-          )}
+        <div className="bg-white flex flex-col w-full rounded-xl">
+          <DataTable
+            data={reservations}
+            gridColumns={gridColumns}
+            columns={columns}
+            isLoading={isLoading}
+            currentPage={currentPage}
+            pageCount={pageCount}
+            onPrevious={() => setCurrentPage(Math.max(currentPage - 1, 1))}
+            onNext={() => setCurrentPage(Math.min(currentPage + 1, pageCount))}
+            onPage={(page) => setCurrentPage(page)}
+            renderActions={() => (
+              <Select
+                placeholder="..."
+                data={[]}
+                value={selectValue}
+                onChange={setSelectValue}
+              />
+            )}
+            headingEmptyMessage="No Reservations found"
+            emptyMessage="We couldn’t find any reservation at the moment."
+          />
         </div>
       </MantineProvider>
     </>

@@ -53,7 +53,7 @@ export const UserInfo = () => {
           )}
         </div>
         <div className="flex flex-col items-end leading-none gap-1">
-          <div className="font-black">{loggedInUser.toUpperCase()}</div>
+          <div className="font-bold">{loggedInUser.toUpperCase()}</div>
           <div className="font">
             {type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()}
           </div>

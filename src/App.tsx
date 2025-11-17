@@ -8,7 +8,7 @@ import {
 } from "react-router-dom";
 
 // Refine Imports
-import { Authenticated, Refine, ErrorComponent } from "@refinedev/core";
+import { Authenticated, ErrorComponent, Refine } from "@refinedev/core";
 import { dataProvider, liveProvider } from "@refinedev/supabase";
 import routerProvider, {
   // CatchAllNavigate,
@@ -24,7 +24,7 @@ import { authProvider } from "./providers/auth-provider";
 // Components
 import { Login } from "./pages/Login";
 import { StudentDashboard } from "./pages/StudentDashboard";
-import StudentCalendar from "./components/StudentCalendar";
+import StudentCalendar from "./pages/calendar/StudentCalendar";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import RoleRedirect from "./utils/role-redirect";
 import { Layout } from "./components/layout/Layout";
@@ -32,9 +32,15 @@ import { Layout } from "./components/layout/Layout";
 // Pages
 import { UserList, UserShow } from "./pages/users";
 import { Suspended } from "./pages/Suspended";
-import { ReservationCreate, ReservationList } from "./pages/reservations";
+import {
+  ReservationCreate,
+  ReservationList,
+  ReservationShow,
+} from "./pages/reservations";
 import { resources } from "./utils/resources";
 import { RoomCreate, RoomList, RoomShow } from "./pages/rooms";
+import { ReservationEdit } from "./pages/reservations/edit";
+// import { ErrorComponent } from "./pages/ErrorComponent";
 
 function App() {
   return (
@@ -81,6 +87,8 @@ function App() {
                 <Route path="/reservation">
                   <Route index element={<ReservationList />}></Route>
                   <Route path="create" element={<ReservationCreate />} />
+                  <Route path="show/:id" element={<ReservationShow />} />
+                  <Route path="edit/:id" element={<ReservationEdit />} />
                 </Route>
                 <Route path="/room">
                   <Route index element={<RoomList />}></Route>

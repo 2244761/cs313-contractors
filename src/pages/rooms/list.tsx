@@ -59,10 +59,7 @@ export const RoomList: React.FC = () => {
       <MantineProvider>
         <div className="flex flex-col gap-4 w-full h-full">
           {!isLoading && rooms.length === 0 ? (
-            <NoResults
-              heading={"No Rooms found"}
-              subheading="We couldn’t find any rooms at the moment."
-            />
+            <NoResults subheading="We couldn’t find any rooms at the moment." />
           ) : (
             <DataTable
               data={rooms}

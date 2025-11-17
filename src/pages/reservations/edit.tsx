@@ -1,11 +1,11 @@
-import { useUpdate } from "@refinedev/core";
-import React from "react";
+// import { useUpdate } from "@refinedev/core";
+// import React from "react";
 
 export const ReservationEdit = () => {
-  const { mutate, mutation } = useUpdate();
+  // const { mutate, mutation } = useUpdate();
 
-  mutate({
-    resource: "admin_reservation",
-  });
+  // mutate({
+  //   resource: "admin_reservation",
+  // });
   return <div>ReservationEdit</div>;
 };

@@ -20,6 +20,7 @@ export const ReservationList: React.FC = () => {
   const [selectValue, setSelectValue] = useState<string | null>("");
   const [reservations, setReservations] = useState<Reservation[]>([]);
 
+  setSearchValue("");
   const {
     result,
     tableQuery: { isLoading, refetch },
@@ -136,7 +137,6 @@ export const ReservationList: React.FC = () => {
                 onChange={setSelectValue}
               />
             )}
-            headingEmptyMessage="No Reservations found"
             emptyMessage="We couldn’t find any reservation at the moment."
           />
         </div>

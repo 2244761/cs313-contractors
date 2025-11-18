@@ -1,4 +1,4 @@
-import { useGo, useTable } from "@refinedev/core";
+import { useDelete, useGo, useTable } from "@refinedev/core";
 import React, { useEffect, useState } from "react";
 import type { Room } from "../../utils/types/index";
 import { ActionIcon, Loader, MantineProvider } from "@mantine/core";
@@ -18,6 +18,8 @@ export const RoomList: React.FC = () => {
     resource: "room",
     sorters: { initial: [{ field: "id", order: "asc" }] },
   });
+
+  const { mutate, mutation: isDeleting } = useDelete<Room>();
 
   const [rooms, setRooms] = useState<Room[]>([]);
 
@@ -54,6 +56,16 @@ export const RoomList: React.FC = () => {
     <>
       <MantineProvider>
         <div className="flex flex-col gap-4 w-full h-full">
+          <button
+            className="bg-[var(--primary)] p-2 text-white rounded cursor-pointer hover:bg-[var(--primary-hover)] transition duration-200"
+            onClick={() =>
+              go({
+                to: "create",
+              })
+            }
+          >
+            Add Room
+          </button>
           {!isLoading && rooms.length === 0 ? (
             <NoResults subheading="We couldn’t find any rooms at the moment." />
           ) : (
@@ -78,7 +90,17 @@ export const RoomList: React.FC = () => {
                   >
                     <LuPencilLine />
                   </ActionIcon>
-                  <ActionIcon title="Delete Room" color="red">
+                  <ActionIcon
+                    title="Delete Room"
+                    color="red"
+                    onClick={() => {
+                      mutate({
+                        resource: "room",
+                        id: room.id,
+                      });
+                    }}
+                    // disabled={isDeleting ? true : false}
+                  >
                     <MdDelete />
                   </ActionIcon>
                 </div>

@@ -40,6 +40,7 @@ import {
 import { resources } from "./utils/resources";
 import { RoomCreate, RoomEdit, RoomList, RoomShow } from "./pages/rooms";
 import { ReservationEdit } from "./pages/reservations/edit";
+import { HistoryList, HistoryShow } from "./pages/history";
 // import { ErrorComponent } from "./pages/ErrorComponent";
 
 function App() {
@@ -80,6 +81,10 @@ function App() {
                 />
                 <Route path="/calendar" element={<StudentCalendar />} />
                 <Route path="/admin-dashboard" element={<AdminDashboard />} />
+                <Route path="/history">
+                  <Route index element={<HistoryList />}></Route>
+                  <Route path="show/:id" element={<HistoryShow />} />
+                </Route>
                 <Route path="/user">
                   <Route index element={<UserList />}></Route>
                   <Route path="show/:id" element={<UserShow />} />

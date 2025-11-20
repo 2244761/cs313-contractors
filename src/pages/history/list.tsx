@@ -1,21 +1,19 @@
 // Refine Dev Class
-import { useTable, useUpdate } from "@refinedev/core";
+import { useTable } from "@refinedev/core";
 
 // React Import
 import { useEffect, useState } from "react";
 
 // Mantine Import
-import { Loader, MantineProvider, ActionIcon } from "@mantine/core";
+import { Loader, MantineProvider } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import { DataTable } from "../../components/table/DataTable";
 import type { Reservation } from "../../utils/types";
 import { Search } from "../../components/Search";
-import { FaXmark } from "react-icons/fa6";
-import { FaCheck } from "react-icons/fa";
 // import supabase from "../../config/supabaseClient";
 
-export const ReservationList: React.FC = () => {
-  const gridColumns = "grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]";
+export const HistoryList: React.FC = () => {
+  const gridColumns = "grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr]";
 
   // const { data, isLoading } = useGetIdentity();
   const [searchCode, setSearchCode] = useState("");
@@ -39,7 +37,7 @@ export const ReservationList: React.FC = () => {
       permanent: [
         {
           field: "status",
-          operator: "contains",
+          operator: "ne",
           value: "Pending",
         },
       ],
@@ -58,8 +56,6 @@ export const ReservationList: React.FC = () => {
       staleTime: 1000 * 60,
     },
   });
-
-  const { mutate } = useUpdate();
 
   useEffect(() => {
     if (result) setReservations(result.data);
@@ -92,26 +88,6 @@ export const ReservationList: React.FC = () => {
     );
   }
 
-  const handleAccept = (id: string) => {
-    mutate({
-      resource: "reservation",
-      id: id,
-      values: {
-        status: "Approved",
-      },
-    });
-  };
-
-  const handleDenied = (id: string) => {
-    mutate({
-      resource: "reservation",
-      id: id,
-      values: {
-        status: "Denied",
-      },
-    });
-  };
-
   // Format data (e.g. 15:00:00+00) to human readable (3:00 PM)
   function formatTime(time: string): string {
     const date = new Date(`2001-09-11T${time.replace("+00", "Z")}`); // Dummy date, will be removed anyway
@@ -142,8 +118,8 @@ export const ReservationList: React.FC = () => {
       accessor: "full_name" as keyof Reservation,
       action: (
         <Search
-          placeholder="Search reservations"
-          data={reservations.map((r) => r.reservation_code)}
+          placeholder="Search users"
+          data={[...new Set(reservations.map((r) => r.full_name))]}
           onChange={(value) => setSearchUser(value)}
           value={searchUser}
         />
@@ -194,29 +170,7 @@ export const ReservationList: React.FC = () => {
             onPrevious={() => setCurrentPage(Math.max(currentPage - 1, 1))}
             onNext={() => setCurrentPage(Math.min(currentPage + 1, pageCount))}
             onPage={(page) => setCurrentPage(page)}
-            renderActions={(reservation) => (
-              <div className="flex gap-2">
-                <ActionIcon
-                  title="Approve Reservation"
-                  color="green"
-                  onClick={() => {
-                    handleAccept(reservation.id);
-                  }}
-                >
-                  <FaCheck />
-                </ActionIcon>
-                <ActionIcon
-                  title="Reject Reservation"
-                  color="red"
-                  onClick={() => {
-                    handleDenied(reservation.id);
-                  }}
-                >
-                  <FaXmark />
-                </ActionIcon>
-              </div>
-            )}
-            emptyMessage="We couldn’t find any reservation at the moment."
+            emptyMessage="We couldn’t find any complete reservation at the moment."
           />
         </div>
       </MantineProvider>

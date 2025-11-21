@@ -1,14 +1,19 @@
 import { Loader, MantineProvider } from "@mantine/core";
-import { useShow } from "@refinedev/core";
+import { useParsed, useShow } from "@refinedev/core";
 import { useEffect, useState } from "react";
 import type { Reservation } from "../../utils/types";
 
 export const ReservationShow = () => {
   const [reservation, setReservation] = useState<Reservation>();
 
+  // Fetch the id from the URL
+  const { id } = useParsed();
   const {
     query: { data, isLoading, error },
-  } = useShow<Reservation>();
+  } = useShow<Reservation>({
+    resource: "admin_reservation",
+    id,
+  });
 
   useEffect(() => {
     if (data) setReservation(data.data);
@@ -29,7 +34,7 @@ export const ReservationShow = () => {
   return (
     <div>
       <h1>{reservation?.reservation_code}</h1>
-      <p>Full Name: {reservation?.full_name}</p>
+      <p>Full Name: {reservation?.advisor}</p>
     </div>
   );
 };

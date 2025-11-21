@@ -12,10 +12,11 @@ import type { Reservation } from "../../utils/types";
 import { Search } from "../../components/Search";
 import { FaXmark } from "react-icons/fa6";
 import { FaCheck } from "react-icons/fa";
+import { Filter } from "../../components/Filter";
 // import supabase from "../../config/supabaseClient";
 
 export const ReservationList: React.FC = () => {
-  const gridColumns = "grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]";
+  const gridColumns = "grid-cols-[1.5fr_1.5fr_1fr_1fr_1fr_1fr_1fr]";
 
   // const { data, isLoading } = useGetIdentity();
   const [searchCode, setSearchCode] = useState("");
@@ -31,6 +32,8 @@ export const ReservationList: React.FC = () => {
     setCurrentPage,
     pageCount,
     setFilters,
+    sorters,
+    setSorters,
   } = useTable<Reservation>({
     resource: "admin_reservation",
     pagination: { currentPage: 1, pageSize: 10 },
@@ -100,6 +103,8 @@ export const ReservationList: React.FC = () => {
         status: "Approved",
       },
     });
+
+    refetch();
   };
 
   const handleDenied = (id: string) => {
@@ -110,6 +115,8 @@ export const ReservationList: React.FC = () => {
         status: "Denied",
       },
     });
+
+    refetch();
   };
 
   // Format data (e.g. 15:00:00+00) to human readable (3:00 PM)
@@ -124,13 +131,33 @@ export const ReservationList: React.FC = () => {
     });
   }
 
+  const getSorter = (field: string) => {
+    const sorter = sorters?.find((s) => s.field === field);
+
+    if (sorter) return sorter.order;
+  };
+
+  const onSort = (field: string) => {
+    const sorter = getSorter(field);
+    setSorters(
+      sorter === "desc"
+        ? []
+        : [
+            {
+              field,
+              order: sorter === "asc" ? "desc" : "asc",
+            },
+          ]
+    );
+  };
+
   const columns = [
     {
       header: "Code",
       accessor: "reservation_code" as keyof Reservation,
       action: (
         <Search
-          placeholder="Search reservations"
+          placeholder="Search reservation"
           data={reservations.map((r) => r.reservation_code)}
           onChange={(value) => setSearchCode(value)}
           value={searchCode}
@@ -141,17 +168,22 @@ export const ReservationList: React.FC = () => {
       header: "User",
       accessor: "full_name" as keyof Reservation,
       action: (
-        <Search
-          placeholder="Search reservations"
-          data={reservations.map((r) => r.reservation_code)}
-          onChange={(value) => setSearchUser(value)}
-          value={searchUser}
-        />
+        <div>
+          <Search
+            placeholder="Search user"
+            data={[...new Set(reservations.map((r) => r.full_name))]}
+            onChange={(value) => setSearchUser(value)}
+            value={searchUser}
+          />
+          <Filter onClick={() => onSort("full_name")} />,
+        </div>
       ),
     },
-    { header: "Purpose", accessor: "purpose" as keyof Reservation },
-    // { header: "Type", accessor: "type" as keyof Reservation },
-    { header: "Status", accessor: "status" as keyof Reservation },
+    {
+      header: "Purpose",
+      accessor: "purpose" as keyof Reservation,
+      action: <Filter onClick={() => onSort("purpose")} />,
+    },
     {
       header: "Date(s)",
       accessor: (item: Reservation) =>
@@ -197,7 +229,7 @@ export const ReservationList: React.FC = () => {
             renderActions={(reservation) => (
               <div className="flex gap-2">
                 <ActionIcon
-                  title="Approve Reservation"
+                  title="Approve reservation"
                   color="green"
                   onClick={() => {
                     handleAccept(reservation.id);
@@ -206,7 +238,7 @@ export const ReservationList: React.FC = () => {
                   <FaCheck />
                 </ActionIcon>
                 <ActionIcon
-                  title="Reject Reservation"
+                  title="Deny reservation"
                   color="red"
                   onClick={() => {
                     handleDenied(reservation.id);

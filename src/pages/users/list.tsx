@@ -159,7 +159,9 @@ export const UserList: React.FC = () => {
       accessor: (user: User) => (
         <div
           className={`p-1.5 px-4 w-fit ${
-            user.is_suspended === false ? tw.isNotSuspended : tw.isSuspended
+            user.is_suspended === false
+              ? tw.indicatorPositive
+              : tw.indicatorNegative
           }`}
         >
           {user.is_suspended === false ? "Active" : "Suspended"}

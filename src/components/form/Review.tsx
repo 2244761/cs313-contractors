@@ -105,6 +105,16 @@ const Review = ({ details, resources, onAgreeChange }: ReviewProps) => {
           />
         </div>
 
+        {/* Remarks */}
+        <div className="w-full">
+          <TextInput
+            readOnly
+            label="Remarks"
+            value={detail.remarks ? [detail.remarks] : undefined}
+            disabled={!detail.remarks?.length ? true : false}
+          />
+        </div>
+
         {/* Participants */}
         <div className="w-full flex flex-col gap-4">
           {resource.participants?.length ? (
@@ -150,16 +160,6 @@ const Review = ({ details, resources, onAgreeChange }: ReviewProps) => {
             ]}
             value={resource.equipments?.map((e: string) => e)}
             disabled={!resource.equipments?.length ? true : false}
-          />
-        </div>
-
-        {/* Remarks */}
-        <div className="w-full">
-          <TextInput
-            readOnly
-            label="Remarks"
-            value={detail.remarks ? [detail.remarks] : undefined}
-            disabled={!detail.remarks?.length ? true : false}
           />
         </div>
 

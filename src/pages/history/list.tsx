@@ -10,10 +10,12 @@ import { useDebouncedValue } from "@mantine/hooks";
 import { DataTable } from "../../components/table/DataTable";
 import type { Reservation } from "../../utils/types";
 import { Search } from "../../components/Search";
+import { tw } from "../../utils/styles/styles";
+import { Filter } from "../../components/Filter";
 // import supabase from "../../config/supabaseClient";
 
 export const HistoryList: React.FC = () => {
-  const gridColumns = "grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr]";
+  const gridColumns = "grid-cols-[1.5fr_1.5fr_1fr_1fr_1fr_1fr_1fr]";
 
   // const { data, isLoading } = useGetIdentity();
   const [searchCode, setSearchCode] = useState("");
@@ -29,6 +31,8 @@ export const HistoryList: React.FC = () => {
     setCurrentPage,
     pageCount,
     setFilters,
+    sorters,
+    setSorters,
   } = useTable<Reservation>({
     resource: "admin_reservation",
     pagination: { currentPage: 1, pageSize: 10 },
@@ -100,13 +104,33 @@ export const HistoryList: React.FC = () => {
     });
   }
 
+  const getSorter = (field: string) => {
+    const sorter = sorters?.find((s) => s.field === field);
+
+    if (sorter) return sorter.order;
+  };
+
+  const onSort = (field: string) => {
+    const sorter = getSorter(field);
+    setSorters(
+      sorter === "desc"
+        ? []
+        : [
+            {
+              field,
+              order: sorter === "asc" ? "desc" : "asc",
+            },
+          ]
+    );
+  };
+
   const columns = [
     {
       header: "Code",
       accessor: "reservation_code" as keyof Reservation,
       action: (
         <Search
-          placeholder="Search reservations"
+          placeholder="Search reservation"
           data={reservations.map((r) => r.reservation_code)}
           onChange={(value) => setSearchCode(value)}
           value={searchCode}
@@ -117,17 +141,22 @@ export const HistoryList: React.FC = () => {
       header: "User",
       accessor: "full_name" as keyof Reservation,
       action: (
-        <Search
-          placeholder="Search users"
-          data={[...new Set(reservations.map((r) => r.full_name))]}
-          onChange={(value) => setSearchUser(value)}
-          value={searchUser}
-        />
+        <div>
+          <Search
+            placeholder="Search user"
+            data={[...new Set(reservations.map((r) => r.full_name))]}
+            onChange={(value) => setSearchUser(value)}
+            value={searchUser}
+          />
+          <Filter onClick={() => onSort("full_name")} />,
+        </div>
       ),
     },
-    { header: "Purpose", accessor: "purpose" as keyof Reservation },
-    // { header: "Type", accessor: "type" as keyof Reservation },
-    { header: "Status", accessor: "status" as keyof Reservation },
+    {
+      header: "Purpose",
+      accessor: "purpose" as keyof Reservation,
+      action: <Filter onClick={() => onSort("purpose")} />,
+    },
     {
       header: "Date(s)",
       accessor: (item: Reservation) =>
@@ -153,6 +182,21 @@ export const HistoryList: React.FC = () => {
         item.schedules && item.schedules.length > 0
           ? formatTime(item.schedules[0].end_time)
           : "-",
+    },
+    {
+      header: "Status",
+      accessor: (reservation: Reservation) => (
+        <div
+          className={`p-1.5 px-4 w-fit ${
+            reservation.status === "Denied"
+              ? tw.indicatorNegative
+              : tw.indicatorPositive
+          }`}
+        >
+          {reservation.status}
+        </div>
+      ),
+      action: <Filter onClick={() => onSort("status")} />,
     },
   ];
 

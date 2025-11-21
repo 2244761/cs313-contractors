@@ -1,5 +1,5 @@
 // Refine Dev Class
-import { useTable } from "@refinedev/core";
+import { useTable, useUpdate } from "@refinedev/core";
 
 // Icons
 import { IoPersonCircleOutline } from "react-icons/io5";
@@ -11,20 +11,22 @@ import { tw } from "../../utils/styles/styles";
 import { useEffect, useState } from "react";
 
 // Mantine Import
-import { Loader, MantineProvider, Select } from "@mantine/core";
+import { ActionIcon, Loader, MantineProvider } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
 import { DataTable } from "../../components/table/DataTable";
 import type { User } from "../../utils/types/index";
 import { Search } from "../../components/Search";
 import { Filter } from "../../components/Filter";
+import { MdDelete } from "react-icons/md";
+import { FaUserCheck, FaUserSlash } from "react-icons/fa";
 
 export const UserList: React.FC = () => {
   const gridColumns = "grid-cols-[2fr_1fr_1fr_1.5fr_1fr_1fr]";
 
   const [searchValue, setSearchValue] = useState<string>("");
   const [debounced] = useDebouncedValue(searchValue, 50);
-  const [selectValue, setSelectValue] = useState<string | null>("");
   const [users, setUsers] = useState<User[]>([]);
+  const { mutate } = useUpdate<User>();
 
   const {
     result,
@@ -40,14 +42,13 @@ export const UserList: React.FC = () => {
     pagination: { currentPage: 1, pageSize: 10 },
     sorters: { initial: [{ field: "id", order: "asc" }] },
     filters: {
-      // ! Disabled Temporarily
-      // permanent: [
-      //   {
-      //     field: "type",
-      //     operator: "ne",
-      //     value: "Admin",
-      //   },
-      // ],
+      permanent: [
+        {
+          field: "type",
+          operator: "ne",
+          value: "Admin",
+        },
+      ],
       initial: [
         {
           field: "full_name",
@@ -167,6 +168,30 @@ export const UserList: React.FC = () => {
       action: <Filter onClick={() => onSort("is_suspended")} />,
     },
   ];
+
+  const handleUserSuspension = (id: string, status: boolean) => {
+    let userSuspension;
+
+    if (status === true) {
+      userSuspension = false;
+    } else {
+      userSuspension = true;
+    }
+
+    mutate({
+      resource: "user",
+      id: id,
+      values: {
+        is_suspended: userSuspension,
+      },
+    });
+  };
+
+  // ! Finalize
+  const handlerUserDeletion = (userId: string) => {
+    console.log(userId);
+  };
+
   return (
     <>
       <MantineProvider>
@@ -181,13 +206,39 @@ export const UserList: React.FC = () => {
             onPrevious={() => setCurrentPage(Math.max(currentPage - 1, 1))}
             onNext={() => setCurrentPage(Math.min(currentPage + 1, pageCount))}
             onPage={(page) => setCurrentPage(page)}
-            renderActions={() => (
-              <Select
-                placeholder="..."
-                data={[]}
-                value={selectValue}
-                onChange={setSelectValue}
-              />
+            renderActions={(user) => (
+              <div className="flex gap-2">
+                {user.is_suspended === true ? (
+                  <ActionIcon
+                    title="Lift user suspension"
+                    color="green.8"
+                    onClick={() => {
+                      handleUserSuspension(user.id, user.is_suspended);
+                    }}
+                  >
+                    <FaUserCheck />
+                  </ActionIcon>
+                ) : (
+                  <ActionIcon
+                    title="Suspend user"
+                    color="yellow"
+                    onClick={() => {
+                      handleUserSuspension(user.id, user.is_suspended);
+                    }}
+                  >
+                    <FaUserSlash />
+                  </ActionIcon>
+                )}
+                <ActionIcon
+                  title="Delete user"
+                  color="red"
+                  onClick={() => {
+                    handlerUserDeletion(user.id);
+                  }}
+                >
+                  <MdDelete />
+                </ActionIcon>
+              </div>
             )}
             emptyMessage="We couldn’t find any users at the moment."
           />

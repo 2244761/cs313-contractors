@@ -1,20 +1,38 @@
-import { Loader, MantineProvider } from "@mantine/core";
+import {
+  Badge,
+  Card,
+  Grid,
+  Group,
+  List,
+  Loader,
+  MantineProvider,
+  Stack,
+  TagsInput,
+  Text,
+  Textarea,
+  TextInput,
+  ThemeIcon,
+  Title,
+} from "@mantine/core";
 import { useShow } from "@refinedev/core";
-import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { IoCalendarOutline, IoTimeOutline } from "react-icons/io5";
 import type { Reservation } from "../../utils/types";
 
 export const ReservationShow = () => {
-  const [reservation, setReservation] = useState<Reservation>();
-
+  const { id } = useParams();
+  
   const {
-    query: { data, isLoading, error },
-  } = useShow<Reservation>();
+  query: { data, isLoading },
+} = useShow<Reservation>({
+  resource: "admin_reservation",
+  id,
+});
 
-  useEffect(() => {
-    if (data) setReservation(data.data);
-  }, [data]);
 
-  if (error) return <p>Error: {error.message}</p>;
+  const record = data?.data;
+  console.log("record =>", record);
+
 
   if (isLoading) {
     return (
@@ -26,10 +44,175 @@ export const ReservationShow = () => {
     );
   }
 
+  const formatTime = (time: string) => {
+    if (!time) return "-";
+    const date = new Date(`2000-01-01T${time.replace("+00", "Z")}`);
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+      timeZone: "UTC",
+    });
+  };
+
+  // Format Date helper
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Approved":
+        return "green";
+      case "Denied":
+      case "Cancelled":
+        return "red";
+      case "Pending":
+        return "yellow";
+      default:
+        return "gray";
+    }
+  };
+
   return (
-    <div>
-      <h1>{reservation?.reservation_code}</h1>
-      <p>Full Name: {reservation?.full_name}</p>
-    </div>
+    <MantineProvider>
+      <div className="w-full h-full flex flex-col gap-6">
+        <div className="flex justify-between items-center bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+          <div>
+            <Group>
+              <Title order={2} className="text-[var(--primary)]">
+                Reservation Details
+              </Title>
+              <Badge
+                size="lg"
+                variant="light"
+                color={getStatusColor(record?.status || "")}
+              >
+                {record?.status}
+              </Badge>
+            </Group>
+            <Text c="dimmed" size="sm">
+              Code: {record?.reservation_code}
+            </Text>
+          </div>
+        </div>
+
+        <Grid gutter="md">
+          <Grid.Col span={{ base: 12, md: 7 }}>
+            <Card
+              padding="lg"
+              radius="md"
+              withBorder
+              className="h-full flex flex-col gap-4"
+            >
+              <Title order={4} className="mb-2">
+                General Information
+              </Title>
+              <TextInput
+                label="Full Name"
+                value={record?.full_name}
+                readOnly
+                variant="filled"
+              />
+              <TextInput
+                label="Purpose"
+                value={record?.purpose}
+                readOnly
+                variant="filled"
+              />
+              <TextInput
+                label="Advisor"
+                value={record?.advisor || "N/A"}
+                readOnly
+                variant="filled"
+              />
+              <Textarea
+                label="Remarks"
+                value={record?.remarks || "No remarks provided."}
+                readOnly
+                variant="filled"
+                minRows={3}
+              />
+            </Card>
+          </Grid.Col>
+
+          <Grid.Col span={{ base: 12, md: 5 }}>
+            <Stack gap="md">
+              <Card padding="lg" radius="md" withBorder>
+                <Title order={4} className="mb-4">
+                  Schedule
+                </Title>
+                <List spacing="sm" center>
+                  {record?.schedules?.map((schedule, index) => (
+                    <List.Item
+                      key={index}
+                      icon={
+                        <ThemeIcon color="blue" size={24} radius="xl">
+                          <IoCalendarOutline size={14} />
+                        </ThemeIcon>
+                      }
+                    >
+                      <div className="flex flex-col ml-2">
+                        <Text size="sm" fw={500}>
+                          {formatDate(schedule.date)}
+                        </Text>
+                        <Group gap="xs">
+                          <IoTimeOutline size={14} className="text-gray-500" />
+                          <Text size="xs" c="dimmed">
+                            {formatTime(schedule.start_time)} -{" "}
+                            {formatTime(schedule.end_time)}
+                          </Text>
+                        </Group>
+                      </div>
+                    </List.Item>
+                  ))}
+                </List>
+              </Card>
+
+              {/* Resources Card */}
+              <Card padding="lg" radius="md" withBorder>
+                <Title order={4} className="mb-4">
+                  Resources
+                </Title>
+                <Stack gap="sm">
+                  <div>
+                    <Text size="sm" fw={500} className="mb-1">
+                      Participants
+                    </Text>
+                    <List type="ordered" withPadding size="sm" spacing="sm">
+                      {record?.participants && record.participants.length > 0 ? (
+                        record.participants.flat().map((p, i) => (
+                          <List.Item key={i}>{p}</List.Item>
+                        ))
+                      ) : (
+                        <Text size="sm" c="dimmed">
+                          No participants listed.
+                        </Text>
+                      )}
+                    </List>
+                  </div>
+                  <div>
+                    <Text size="sm" fw={500} className="mb-1">
+                      Equipments
+                    </Text>
+                    <TagsInput
+                      readOnly
+                      value={(record?.equipments || []).flat().map((item) => String(item))}
+                      placeholder={(record?.equipments || []).length ? "" : "No equipment requested"}
+                      variant="filled"
+                    />
+                  </div>
+                </Stack>
+              </Card>
+            </Stack>
+          </Grid.Col>
+        </Grid>
+      </div>
+    </MantineProvider>
   );
 };

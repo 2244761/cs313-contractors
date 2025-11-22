@@ -22,7 +22,7 @@ export const getMenuItems = (type: string): MenuItem[] => {
         {
           label: "Dashboard",
           // ! Fix proper routing
-          to: "/",
+          to: "/admin-dashboard",
           icon: MdOutlineDashboard,
         },
         {

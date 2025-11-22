@@ -48,17 +48,13 @@ const RoleRedirect = () => {
     );
   }
 
-  // if (role === "student") {
-  //   return <Navigate to="/student-dashboard" replace />;
-  // } else if (role === "admin") {
-  //   return <Navigate to="/admin-dashboard" replace />;
-  // }
-
   // TEMPORARY
   if (type === "Student") {
     return <Navigate to="/student-dashboard" replace />;
   } else if (type === "Admin") {
     return <Navigate to="/admin-dashboard" replace />;
+  } else if (type === "Instructor") {
+    return <Navigate to="/instructor-dashboard" replace />;
   }
 
   return <Navigate to="/login" replace />;

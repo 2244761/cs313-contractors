@@ -84,7 +84,7 @@ export const UserList: React.FC = () => {
   if (isLoading) {
     return (
       <MantineProvider>
-        <div className="flex justify-center items-center h-[75dvh]">
+        <div className="flex justify-center items-center absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
           <Loader />
         </div>
       </MantineProvider>

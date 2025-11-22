@@ -40,3 +40,21 @@ export interface User {
   is_suspended: boolean;
   type: string;
 }
+
+export interface RoomUsage {
+  room_id: number;
+  room_name: string;
+  total_usage: number;
+}
+
+export interface UserCount {
+  user_type: string;
+  total: number;
+}
+
+export interface UsageByPurpose {
+  room_id: number;
+  room_name: string;
+  purpose: string;
+  total_usage: number;
+}

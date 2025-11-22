@@ -18,7 +18,6 @@ import { Filter } from "../../components/Filter";
 export const ReservationList: React.FC = () => {
   const gridColumns = "grid-cols-[1.5fr_1.5fr_1fr_1fr_1fr_1fr_1fr]";
 
-  // const { data, isLoading } = useGetIdentity();
   const [searchCode, setSearchCode] = useState("");
   const [searchUser, setSearchUser] = useState("");
   const [debouncedCode] = useDebouncedValue(searchCode, 150);
@@ -36,7 +35,7 @@ export const ReservationList: React.FC = () => {
     setSorters,
   } = useTable<Reservation>({
     resource: "admin_reservation",
-    pagination: { currentPage: 1, pageSize: 10 },
+    pagination: { currentPage: 1, pageSize: 9 },
     sorters: { initial: [{ field: "id", order: "asc" }] },
     filters: {
       permanent: [
@@ -88,7 +87,7 @@ export const ReservationList: React.FC = () => {
   if (isLoading && reservations.length === 0) {
     return (
       <MantineProvider>
-        <div className="flex justify-center items-center h-[75dvh]">
+        <div className="flex justify-center items-center absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
           <Loader />
         </div>
       </MantineProvider>
@@ -215,42 +214,40 @@ export const ReservationList: React.FC = () => {
   return (
     <>
       <MantineProvider>
-        <div className="bg-white flex flex-col w-full rounded-xl">
-          <DataTable
-            data={reservations}
-            gridColumns={gridColumns}
-            columns={columns}
-            isLoading={isLoading}
-            currentPage={currentPage}
-            pageCount={pageCount}
-            onPrevious={() => setCurrentPage(Math.max(currentPage - 1, 1))}
-            onNext={() => setCurrentPage(Math.min(currentPage + 1, pageCount))}
-            onPage={(page) => setCurrentPage(page)}
-            renderActions={(reservation) => (
-              <div className="flex gap-2">
-                <ActionIcon
-                  title="Approve reservation"
-                  color="green"
-                  onClick={() => {
-                    handleAccept(reservation.id);
-                  }}
-                >
-                  <FaCheck />
-                </ActionIcon>
-                <ActionIcon
-                  title="Deny reservation"
-                  color="red"
-                  onClick={() => {
-                    handleDenied(reservation.id);
-                  }}
-                >
-                  <FaXmark />
-                </ActionIcon>
-              </div>
-            )}
-            emptyMessage="We couldn’t find any reservation at the moment."
-          />
-        </div>
+        <DataTable
+          data={reservations}
+          gridColumns={gridColumns}
+          columns={columns}
+          isLoading={isLoading}
+          currentPage={currentPage}
+          pageCount={pageCount}
+          onPrevious={() => setCurrentPage(Math.max(currentPage - 1, 1))}
+          onNext={() => setCurrentPage(Math.min(currentPage + 1, pageCount))}
+          onPage={(page) => setCurrentPage(page)}
+          renderActions={(reservation) => (
+            <div className="flex gap-2">
+              <ActionIcon
+                title="Approve reservation"
+                color="green"
+                onClick={() => {
+                  handleAccept(reservation.id);
+                }}
+              >
+                <FaCheck />
+              </ActionIcon>
+              <ActionIcon
+                title="Deny reservation"
+                color="red"
+                onClick={() => {
+                  handleDenied(reservation.id);
+                }}
+              >
+                <FaXmark />
+              </ActionIcon>
+            </div>
+          )}
+          emptyMessage="We couldn’t find any reservation at the moment."
+        />
       </MantineProvider>
     </>
   );

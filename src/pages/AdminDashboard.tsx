@@ -1,11 +1,411 @@
-// import React, { useEffect } from "react";
-// import supabase from "../config/supabaseClient";
-// import { useNavigate } from "react-router";
-
+import { useGo, useTable } from "@refinedev/core";
+import type {
+  Reservation,
+  RoomUsage,
+  UsageByPurpose,
+  UserCount,
+} from "../utils/types";
+import supabase from "../config/supabaseClient";
+import { useEffect, useState } from "react";
+import { ReservationCard } from "../components/ReservationCard";
+import { Loader, MantineProvider } from "@mantine/core";
+import { NoResults } from "../components/NoResults";
+import { Bar, Pie } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  Tooltip,
+  Legend,
+} from "chart.js";
 export const AdminDashboard = () => {
+  ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    ArcElement,
+    Tooltip,
+    Legend
+  );
+  const gridColumns = "grid-cols-[1.5fr_1.5fr_1fr_1fr_1fr_1fr]";
+
+  const [records, setRecords] = useState<Reservation[]>();
+  const [pendingRoomUsage, setPendingRoomUsage] = useState<RoomUsage[]>();
+  const [activeRoomUsage, setActiveRoomUsage] = useState<RoomUsage[]>();
+  const [totalRoomUsage, setTotalRoomUsage] = useState<RoomUsage[]>();
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [userCount, setUserCount] = useState<UserCount[]>([]);
+  const [usageByPurpose, setUsageByPurpose] = useState<UsageByPurpose[]>([]);
+  const [chartUserCount, setChartUserCount] = useState<UserCount[]>([]);
+  const [chartUsageByPurpose, setChartUsageByPurpose] = useState<
+    UsageByPurpose[]
+  >([]);
+
+  const rooms = [...new Set(usageByPurpose.map((r) => r.room_name))];
+  const purposes = [...new Set(usageByPurpose.map((r) => r.purpose))];
+
+  // Route to reservation Tab
+  const go = useGo();
+
+  // Fetch the total records from the database
+  const {
+    result: totalRecords,
+    tableQuery: { isLoading: reservationIsLoading },
+  } = useTable<Reservation>({
+    resource: "reservation",
+  });
+
+  // Fetch total records
+  const {
+    result: monthReservation,
+    tableQuery: { isLoading: monthReservationsIsLoading },
+  } = useTable<Reservation>({
+    resource: "admin_reservation_this_month",
+  });
+
+  useEffect(() => {
+    if (monthReservation) setRecords(monthReservation.data);
+  }, [monthReservation]);
+
+  // Rerender if any of the setter function updates
+  useEffect(() => {
+    // Fetch the rooms from pending reservations
+    async function getPendingRoomUsage() {
+      const { data } = await supabase.rpc("admin_get_room_usage", {
+        p_status: "Pending",
+      });
+
+      if (data) setPendingRoomUsage(data);
+    }
+
+    // Fetch the rooms from approved reservations
+    async function getActiveRoomUsage() {
+      const { data } = await supabase.rpc("admin_get_room_usage", {
+        p_status: "Approved",
+      });
+
+      if (data) setActiveRoomUsage(data);
+    }
+
+    // Fetch the rooms from all reservations
+    async function getTotalRoomUsage() {
+      const { data } = await supabase.rpc("admin_get_all_room_usage");
+
+      if (data) setTotalRoomUsage(data);
+    }
+
+    // Fetch total user by type
+    async function getTotalUsers() {
+      const { data } = await supabase.rpc("admin_get_user_counts");
+
+      if (data) setUserCount(data);
+    }
+
+    // Fetch total user by type
+    async function getUsageByPurpose() {
+      const { data } = await supabase.rpc("admin_get_room_usage_per_purpose");
+
+      if (data) setUsageByPurpose(data);
+    }
+
+    const refreshAllData = () => {
+      getPendingRoomUsage();
+      getActiveRoomUsage();
+      getTotalRoomUsage();
+      getTotalUsers();
+      getUsageByPurpose();
+    };
+
+    refreshAllData();
+  }, []);
+
+  // Fetch all the data from the admin_reservation table
+  const {
+    result,
+    tableQuery: { isLoading: adminReservationIsLoading },
+  } = useTable<Reservation>({
+    resource: "admin_reservation",
+    pagination: { currentPage: 1, pageSize: 6 },
+    sorters: { initial: [{ field: "id", order: "asc" }] },
+    filters: {
+      permanent: [
+        {
+          field: "status",
+          operator: "contains",
+          value: "Pending",
+        },
+      ],
+      initial: [
+        {
+          field: "reservation_code",
+          operator: "contains",
+          value: "",
+        },
+      ],
+    },
+    queryOptions: {
+      enabled: true,
+      refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 1000 * 60,
+    },
+  });
+
+  useEffect(() => {
+    if (
+      !reservationIsLoading &&
+      !adminReservationIsLoading &&
+      !monthReservationsIsLoading
+    ) {
+      setChartUserCount(userCount);
+      setChartUsageByPurpose(usageByPurpose);
+    }
+  }, [
+    reservationIsLoading,
+    adminReservationIsLoading,
+    userCount,
+    usageByPurpose,
+    monthReservationsIsLoading,
+  ]);
+
+  useEffect(() => {
+    if (result) setReservations(result.data);
+  }, [result]);
+
+  // If the data are still loading, it will display the loading state
+  if (
+    reservationIsLoading &&
+    adminReservationIsLoading &&
+    monthReservationsIsLoading
+  ) {
+    return (
+      <MantineProvider>
+        <div className="flex justify-center items-center absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <Loader />
+        </div>
+      </MantineProvider>
+    );
+  }
+
+  // Format data (e.g. 15:00:00+00) to human readable (3:00 PM)
+  function formatTime(time: string): string {
+    const date = new Date(`2001-09-11T${time.replace("+00", "Z")}`); // Dummy date, will be removed anyway
+
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+      timeZone: "UTC",
+    });
+  }
+
+  const columns = [
+    {
+      header: "Code",
+      accessor: "reservation_code" as keyof Reservation,
+    },
+    {
+      header: "User",
+      accessor: "full_name" as keyof Reservation,
+    },
+    {
+      header: "Purpose",
+      accessor: "purpose" as keyof Reservation,
+    },
+    {
+      header: "Date(s)",
+      accessor: (item: Reservation) =>
+        item.schedules
+          ?.map((s: { date: string }) =>
+            new Date(s.date).toLocaleDateString("en-us", {
+              month: "short",
+              day: "numeric",
+            })
+          )
+          .join(", ") || "—",
+    },
+    {
+      header: "Start",
+      accessor: (item: Reservation) =>
+        item.schedules && item.schedules.length > 0
+          ? formatTime(item.schedules[0].start_time)
+          : "-",
+    },
+    {
+      header: "End",
+      accessor: (item: Reservation) =>
+        item.schedules && item.schedules.length > 0
+          ? formatTime(item.schedules[0].end_time)
+          : "-",
+    },
+  ];
+
   return (
     <>
-      <div>AdminDashboard</div>
+      {records &&
+      pendingRoomUsage &&
+      activeRoomUsage &&
+      totalRoomUsage &&
+      reservations &&
+      userCount &&
+      usageByPurpose ? (
+        <div className="grid grid-cols-[3fr_1fr] gap-4 w-full h-full">
+          {/* First Column - Reservations */}
+          <div className="flex flex-col gap-4">
+            <div className="flex justify-between gap-4">
+              <div className="w-full">
+                <ReservationCard
+                  header="Pending Reservations"
+                  totalValue={
+                    records?.filter((r) => r.status === "Pending").length
+                  }
+                  roomsUsage={pendingRoomUsage}
+                  type="pending"
+                />
+              </div>
+              <div className="w-full">
+                <ReservationCard
+                  header="Active Reservations"
+                  totalValue={
+                    records?.filter((r) => r.status === "Approved").length
+                  }
+                  roomsUsage={activeRoomUsage}
+                  type="active"
+                />
+              </div>
+              <div className="w-full">
+                <ReservationCard
+                  header="Total Reservations"
+                  totalValue={totalRecords.total}
+                  roomsUsage={totalRoomUsage}
+                  type="total"
+                />
+              </div>
+            </div>
+            <div className="border-gray-200 border flex flex-col bg-white rounded-xl h-full">
+              <div className="flex justify-between items-center p-4">
+                <span className="text-2xl text-[var(--primary)] font-bold">
+                  Reservation
+                </span>
+                <button
+                  className="text-white text-medium bg-[var(--primary)] cursor-pointer p-2 px-4 rounded hover:bg-[var(--primary-hover)] transition-colors duration-200"
+                  onClick={() =>
+                    go({
+                      to: `/reservation`,
+                    })
+                  }
+                >
+                  View Reservations
+                </button>
+              </div>
+              <div>
+                <table className="w-full text-left">
+                  <thead className="border-b border-gray-200 ">
+                    <tr className={`grid ${gridColumns} items-center p-4 `}>
+                      {columns.map((col, index) => (
+                        <th
+                          key={index}
+                          className="font-bold flex gap-2 items-center"
+                        >
+                          {col.header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {reservations.length === 0 ? (
+                      <NoResults
+                        subheading={
+                          "We couldn’t find any reservation at the moment."
+                        }
+                      />
+                    ) : (
+                      reservations.map((item, index) => (
+                        <tr
+                          key={index}
+                          className={`grid px-4 items-center border-gray-200
+                    ${gridColumns} ${
+                            index !== reservations.length - 1 && "border-b "
+                          }`}
+                        >
+                          {columns.map((col, i) => {
+                            const value =
+                              typeof col.accessor === "function"
+                                ? col.accessor(item)
+                                : (item[col.accessor] as React.ReactNode);
+                            return (
+                              <td key={i} className="py-4">
+                                {value}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          {/* 2nd Column - User Type & Room Utilization Purpose*/}
+          <div className="h-full flex flex-col gap-4">
+            <div className="bg-white p-4 py-8 border-gray-200 border rounded-xl w-full h-max text-center">
+              <h2 className="text-2xl font-bold text-[var(--dark-primary)] mb-2">
+                Total Users
+              </h2>
+              <Pie
+                data={{
+                  labels: chartUserCount.map((u) => u.user_type),
+                  datasets: [
+                    {
+                      data: chartUserCount.map((u) => u.total),
+                      backgroundColor: ["#F6C501", "#0070CC", "#073066"],
+                    },
+                  ],
+                }}
+                options={{ animation: { duration: 1000 } }}
+              />
+            </div>
+            <div className="bg-white p-4 border-gray-200 border rounded-xl w-full text-center h-full grid place-items-center">
+              <div>
+                <h2 className="text-2xl font-bold text-[var(--dark-primary)] mb-2">
+                  Room Utilization Purpose
+                </h2>
+                <Bar
+                  data={{
+                    labels: rooms,
+                    datasets: purposes.map((purpose, index) => ({
+                      label: purpose,
+                      data: rooms.map((room) => {
+                        const record = chartUsageByPurpose.find(
+                          (r) => r.room_name === room && r.purpose === purpose
+                        );
+                        return record ? record.total_usage : 0;
+                      }),
+                      backgroundColor: [
+                        "#F6C501",
+                        "#0070CC",
+                        "#073066",
+                        "#FF6B6B",
+                      ][index % 4],
+                    })),
+                  }}
+                  options={{ animation: { duration: 1000 } }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <MantineProvider>
+          <div className="flex justify-center items-center absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <Loader />
+          </div>
+        </MantineProvider>
+      )}
     </>
   );
 };

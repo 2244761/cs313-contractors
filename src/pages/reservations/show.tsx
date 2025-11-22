@@ -1,4 +1,5 @@
 import {
+  ActionIcon,
   Badge,
   Card,
   Grid,
@@ -14,25 +15,28 @@ import {
   ThemeIcon,
   Title,
 } from "@mantine/core";
-import { useShow } from "@refinedev/core";
+import { useShow, useUpdate } from "@refinedev/core";
 import { useParams } from "react-router-dom";
-import { IoCalendarOutline, IoTimeOutline } from "react-icons/io5";
+import {
+  IoCalendarOutline,
+  IoPersonSharp,
+  IoTimeOutline,
+} from "react-icons/io5";
 import type { Reservation } from "../../utils/types";
+import { FaCheck } from "react-icons/fa";
+import { FaXmark } from "react-icons/fa6";
 
 export const ReservationShow = () => {
   const { id } = useParams();
-  
+  const { mutate } = useUpdate();
   const {
-  query: { data, isLoading },
-} = useShow<Reservation>({
-  resource: "admin_reservation",
-  id,
-});
-
+    query: { data, isLoading },
+  } = useShow<Reservation>({
+    resource: "admin_reservation",
+    id,
+  });
 
   const record = data?.data;
-  console.log("record =>", record);
-
 
   if (isLoading) {
     return (
@@ -62,6 +66,26 @@ export const ReservationShow = () => {
       year: "numeric",
       month: "long",
       day: "numeric",
+    });
+  };
+
+  const handleAccept = (id: string) => {
+    mutate({
+      resource: "reservation",
+      id: id,
+      values: {
+        status: "Approved",
+      },
+    });
+  };
+
+  const handleDenied = (id: string) => {
+    mutate({
+      resource: "reservation",
+      id: id,
+      values: {
+        status: "Denied",
+      },
     });
   };
 
@@ -99,6 +123,26 @@ export const ReservationShow = () => {
             <Text c="dimmed" size="sm">
               Code: {record?.reservation_code}
             </Text>
+          </div>
+          <div className="flex gap-2">
+            <ActionIcon
+              title="Approve Reservation"
+              color="green"
+              onClick={() => {
+                handleAccept(record?.id ?? "");
+              }}
+            >
+              <FaCheck />
+            </ActionIcon>
+            <ActionIcon
+              title="Reject Reservation"
+              color="red"
+              onClick={() => {
+                handleDenied(record?.id ?? "");
+              }}
+            >
+              <FaXmark />
+            </ActionIcon>
           </div>
         </div>
 
@@ -184,11 +228,27 @@ export const ReservationShow = () => {
                     <Text size="sm" fw={500} className="mb-1">
                       Participants
                     </Text>
-                    <List type="ordered" withPadding size="sm" spacing="sm">
-                      {record?.participants && record.participants.length > 0 ? (
-                        record.participants.flat().map((p, i) => (
-                          <List.Item key={i}>{p}</List.Item>
-                        ))
+                    <List
+                      type="ordered"
+                      size="sm"
+                      spacing="md"
+                      icon={
+                        <ThemeIcon color="teal" size={24} radius="xl">
+                          <IoPersonSharp size={16} />
+                        </ThemeIcon>
+                      }
+                    >
+                      {(record?.participants || [])
+                        .flat()
+                        .filter((p) => p && p.trim?.() !== "").length > 0 ? (
+                        record?.participants
+                          .flat()
+                          .filter((p) => p && p.trim?.() !== "")
+                          .map((p, i) => (
+                            <List.Item key={i} variant="filled">
+                              {p}
+                            </List.Item>
+                          ))
                       ) : (
                         <Text size="sm" c="dimmed">
                           No participants listed.
@@ -202,8 +262,17 @@ export const ReservationShow = () => {
                     </Text>
                     <TagsInput
                       readOnly
-                      value={(record?.equipments || []).flat().map((item) => String(item))}
-                      placeholder={(record?.equipments || []).length ? "" : "No equipment requested"}
+                      value={(record?.equipments || [])
+                        .flat()
+                        .filter((e) => e && String(e).trim() !== "")
+                        .map((e) => String(e))}
+                      placeholder={
+                        (record?.equipments || [])
+                          .flat()
+                          .filter((e) => e && String(e).trim() !== "").length
+                          ? ""
+                          : "No equipment requested"
+                      }
                       variant="filled"
                     />
                   </div>

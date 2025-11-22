@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import type { User } from "../../utils/types";
-import { useShow } from "@refinedev/core";
+import { useShow, useUpdate } from "@refinedev/core";
 import {
+  ActionIcon,
   Badge,
   Card,
   Grid,
@@ -12,9 +13,12 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
+import { FaUserCheck, FaUserSlash } from "react-icons/fa";
+import { MdDelete } from "react-icons/md";
 
 export const UserShow = () => {
   const [user, setUser] = useState<User>();
+  const { mutate } = useUpdate<User>();
 
   const {
     query: { data, isLoading, error },
@@ -35,6 +39,29 @@ export const UserShow = () => {
       </MantineProvider>
     );
   }
+
+  const handleUserSuspension = (id: string, status: boolean) => {
+    let userSuspension;
+
+    if (status === true) {
+      userSuspension = false;
+    } else {
+      userSuspension = true;
+    }
+
+    mutate({
+      resource: "user",
+      id: id,
+      values: {
+        is_suspended: userSuspension,
+      },
+    });
+  };
+
+  // ! Finalize
+  const handlerUserDeletion = (userId: string) => {
+    console.log(userId);
+  };
 
   const getStatusColor = (status: boolean) => (status ? "red" : "green");
 
@@ -58,16 +85,55 @@ export const UserShow = () => {
             </Group>
 
             <Text c="dimmed" size="sm">
-              User Id: {user?.identifier && user.identifier !== "N/A"
-                ? user.identifier
-                : "Not Available"}
+              User Id:{" "}
+              {user?.id && user.id !== "N/A" ? user.id : "Not Available"}
             </Text>
+          </div>
+          <div className="flex gap-2">
+            {user?.is_suspended === true ? (
+              <ActionIcon
+                title="Lift user suspension"
+                color="green.8"
+                onClick={() => {
+                  handleUserSuspension(user.id, user.is_suspended);
+                }}
+              >
+                <FaUserCheck />
+              </ActionIcon>
+            ) : (
+              <ActionIcon
+                title="Suspend user"
+                color="yellow"
+                onClick={() => {
+                  handleUserSuspension(
+                    user?.id ?? "",
+                    user?.is_suspended ?? false
+                  );
+                }}
+              >
+                <FaUserSlash />
+              </ActionIcon>
+            )}
+            <ActionIcon
+              title="Delete user"
+              color="red"
+              onClick={() => {
+                handlerUserDeletion(user?.id ?? "");
+              }}
+            >
+              <MdDelete />
+            </ActionIcon>
           </div>
         </div>
 
         <Grid gutter="xl">
           <Grid.Col span={{ base: 12, md: 7 }}>
-            <Card padding="lg" radius="md" withBorder className="flex flex-col gap-4">
+            <Card
+              padding="lg"
+              radius="md"
+              withBorder
+              className="flex flex-col gap-4"
+            >
               <Title order={4} className="mb-2">
                 General Information
               </Title>
@@ -102,17 +168,24 @@ export const UserShow = () => {
             </Card>
           </Grid.Col>
           <Grid.Col span={{ base: 12, md: 5 }}>
-            <Card padding="lg" radius="md" withBorder className="flex flex-col items-center gap-4">
+            <Card
+              padding="lg"
+              radius="md"
+              withBorder
+              className="flex flex-col items-center gap-4"
+            >
               <Title order={4}>Profile Picture</Title>
 
               <div className="w-40 h-40 rounded-full overflow-hidden border border-gray-300 shadow-sm">
                 {user?.avatar_url ? (
-                  <img src={user.avatar_url} alt="User Avatar"
-                  className="w-full h-full object-cover"
+                  <img
+                    src={user.avatar_url}
+                    alt="User Avatar"
+                    className="w-full h-full object-cover"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
-                  No Image
+                    No Image
                   </div>
                 )}
               </div>

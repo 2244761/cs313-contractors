@@ -1,6 +1,5 @@
 import { useState } from "react";
-import type { Room } from "../../utils/types";
-import { useCreate, useList } from "@refinedev/core";
+import { useCreate, useUpdate } from "@refinedev/core";
 import {
   MantineProvider,
   NumberInput,
@@ -23,19 +22,18 @@ import { FaXmark } from "react-icons/fa6";
 
 export const RoomCreate = () => {
   const [files, setFiles] = useState<FileWithPath[]>([]);
-  const { query } = useList<Room>();
 
-  const totalRooms = query.data?.data.length ?? 0;
   const [name, setName] = useState("");
   const [room, setRoom] = useState("");
   const [description, setDescription] = useState("");
   const [capacity, setCapacity] = useState(0);
-  const [status, setStatus] = useState("Available");
+  const [status, setStatus] = useState("Unavailable");
 
   const {
-    mutate,
+    mutateAsync,
     mutation: { isPending: isCreating },
   } = useCreate();
+  const { mutateAsync: updateAsync } = useUpdate();
 
   const removePreview = (name: string) => {
     setFiles((files) => files.filter((file) => file.name !== name));
@@ -45,36 +43,46 @@ export const RoomCreate = () => {
     e.preventDefault();
 
     try {
-      const uploadPromises = files.map(async (file, i) => {
-        const fileExtension = file.name.split(".").pop();
-        const path = `room-${totalRooms + 1}/thumbnail-${
-          i + 1
-        }.${fileExtension}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from("room_thumbnails")
-          .upload(path, file, { upsert: true });
-
-        if (uploadError) throw uploadError;
-
-        const { data: publicUrlData } = supabase.storage
-          .from("room_thumbnails")
-          .getPublicUrl(path);
-
-        return publicUrlData.publicUrl;
-      });
-      const uploadedUrls = await Promise.all(uploadPromises);
-
-      await mutate({
+      // 1️⃣ Create the room first
+      const newRoom = await mutateAsync({
         resource: "room",
         values: {
-          name: name,
-          room: room,
-          status: status,
-          description: description,
-          capacity: capacity,
-          images: uploadedUrls,
+          name,
+          room,
+          status,
+          description,
+          capacity,
+          images: [], // temporarily empty
         },
+      });
+
+      if (!newRoom.data.id) throw new Error("Failed to get new room ID");
+      const roomId = newRoom.data.id;
+
+      // 2️⃣ Upload files using the actual room ID
+      const uploadedUrls = await Promise.all(
+        files.map(async (file, i) => {
+          const fileExtension = file.name.split(".").pop();
+          const path = `room-${roomId}/thumbnail-${i + 1}.${fileExtension}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from("room_thumbnails")
+            .upload(path, file, { upsert: true });
+          if (uploadError) throw uploadError;
+
+          const { data: publicUrlData } = supabase.storage
+            .from("room_thumbnails")
+            .getPublicUrl(path);
+
+          return publicUrlData.publicUrl;
+        })
+      );
+
+      // 3️⃣ Update the room with uploaded image URLs
+      await updateAsync({
+        resource: "room",
+        id: roomId,
+        values: { images: uploadedUrls },
       });
 
       alert("Room Successfully Created!");

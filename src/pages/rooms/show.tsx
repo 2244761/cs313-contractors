@@ -8,6 +8,7 @@ import {
 import { useShow } from "@refinedev/core";
 import { useEffect, useState } from "react";
 import type { Room } from "../../utils/types";
+import supabase from "../../config/supabaseClient";
 
 export const RoomShow = () => {
   const [room, setRoom] = useState<Room>();
@@ -16,6 +17,11 @@ export const RoomShow = () => {
   } = useShow<Room>();
 
   // const { query: roomList } = useList<Room>({ resource: "room" });
+
+  // TEST
+  const { data: imageUrl } = supabase.storage
+    .from("room_thumbnails")
+    .getPublicUrl(`room-${room?.id}/thumbnail-1.jpg`);
 
   useEffect(() => {
     if (data) setRoom(data.data);
@@ -35,6 +41,7 @@ export const RoomShow = () => {
 
   return (
     <MantineProvider>
+      <img src={imageUrl.publicUrl} alt="Test" />
       <div className="w-max h-max bg-white rounded-xl p-4 border border-gray-200">
         <div>
           <TextInput

@@ -19,7 +19,10 @@ export const RoomList: React.FC = () => {
     sorters: { initial: [{ field: "id", order: "asc" }] },
   });
 
-  const { mutate, mutation: isDeleting } = useDelete<Room>();
+  const {
+    mutate,
+    mutation: { isPending: isDeleting },
+  } = useDelete<Room>();
 
   const [rooms, setRooms] = useState<Room[]>([]);
 
@@ -99,7 +102,7 @@ export const RoomList: React.FC = () => {
                         id: room.id,
                       });
                     }}
-                    // disabled={isDeleting ? true : false}
+                    disabled={isDeleting}
                   >
                     <MdDelete />
                   </ActionIcon>

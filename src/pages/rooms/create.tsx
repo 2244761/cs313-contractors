@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { Room } from "../../utils/types";
 import { useCreate, useList } from "@refinedev/core";
 import {
@@ -25,69 +25,67 @@ export const RoomCreate = () => {
   const [files, setFiles] = useState<FileWithPath[]>([]);
   const { query } = useList<Room>();
 
-  const totalRoom = query.data?.data.length;
-  // const [room, setRoom] = useState<Room>({
-  //   id: 0,
-  //   name: "",
-  //   room: "",
-  //   status: "Available",
-  //   description: "",
-  //   images: [],
-  //   capacity: 0,
-  // });
+  const totalRooms = query.data?.data.length ?? 0;
+  const [name, setName] = useState("");
+  const [room, setRoom] = useState("");
+  const [description, setDescription] = useState("");
+  const [capacity, setCapacity] = useState(0);
+  const [status, setStatus] = useState("Available");
 
-  // const {
-  //   mutate,
-  //   mutation: { isPending: isCreating },
-  // } = useCreate();
-
-  // const handleUpdate = async () => {
-  //   await mutate({
-  //     resource: "room",
-  //     values: {
-  //       name: name,
-  //       room: ,
-  //       status: status,
-  //       description: ,
-  //       capacity: ,
-  //     },
-  //   });
-  // };
-
-  // const storeThumbnails = files.map((file, index) => {
-  //   const blobUrl = URL.createObjectURL(file);
-  //   const imageName = `thumbnail-${index + 1}`;
-  //   return {
-  //     file,
-  //     blobUrl,
-  //     name: imageName,
-  //   };
-  // });
+  const {
+    mutate,
+    mutation: { isPending: isCreating },
+  } = useCreate();
 
   const removePreview = (name: string) => {
     setFiles((files) => files.filter((file) => file.name !== name));
   };
 
-  console.log(files.map((f) => f.name));
-
-  const handleUpload = async (e: React.FormEvent) => {
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
 
-      const { data, error } = await supabase.storage
-        .from("room_thumbnails")
-        .upload(`1/${file.name}`, file);
+    try {
+      const uploadPromises = files.map(async (file, i) => {
+        const fileExtension = file.name.split(".").pop();
+        const path = `room-${totalRooms + 1}/thumbnail-${
+          i + 1
+        }.${fileExtension}`;
 
-      if (error) console.log(error);
+        const { error: uploadError } = await supabase.storage
+          .from("room_thumbnails")
+          .upload(path, file, { upsert: true });
 
-      console.log(data);
+        if (uploadError) throw uploadError;
+
+        const { data: publicUrlData } = supabase.storage
+          .from("room_thumbnails")
+          .getPublicUrl(path);
+
+        return publicUrlData.publicUrl;
+      });
+      const uploadedUrls = await Promise.all(uploadPromises);
+
+      await mutate({
+        resource: "room",
+        values: {
+          name: name,
+          room: room,
+          status: status,
+          description: description,
+          capacity: capacity,
+          images: uploadedUrls,
+        },
+      });
+
+      alert("Room Successfully Created!");
+      window.location.reload();
+    } catch (error) {
+      console.error("Failed to create room:", error);
     }
   };
 
   const previewThumbnails = files.map((file, index) => {
     const blobUrl = URL.createObjectURL(file);
-    // const imageName = `thumbnail-${index + 1}`;
 
     if (IMAGE_MIME_TYPE.includes(file.type as any)) {
       return (
@@ -133,11 +131,16 @@ export const RoomCreate = () => {
     }
   });
 
+  const statusOptions = [
+    { value: "Available", label: "Available" },
+    { value: "Unavailable", label: "Unavailable" },
+  ];
+
   return (
     <MantineProvider>
       <div className="flex justify-center items-center">
         <form
-          onSubmit={handleUpload}
+          onSubmit={handleCreate}
           className="w-2xl h-max bg-white rounded-xl p-8 border border-gray-200 flex flex-col gap-4"
         >
           <Dropzone
@@ -165,24 +168,47 @@ export const RoomCreate = () => {
             </div>
           </Dropzone>
           <div className="flex gap-2">{previewThumbnails}</div>
-          {/* <div>
-            <TextInput label="Facility" />
+          <div>
+            <TextInput
+              label="Facility"
+              value={name}
+              onChange={(e) => setName(e.currentTarget.value)}
+            />
           </div>
           <div>
-            <TextInput label="Room" />
+            <TextInput
+              label="Room"
+              value={room}
+              onChange={(e) => setRoom(e.currentTarget.value)}
+            />
           </div>
           <div>
-            <Textarea label="Description" styles={{ input: { height: 150 } }} />
+            <Textarea
+              label="Description"
+              styles={{ input: { height: 150 } }}
+              value={description}
+              onChange={(e) => setDescription(e.currentTarget.value)}
+            />
           </div>
           <div>
-            <NumberInput label="Capacity" />
+            <NumberInput
+              label="Capacity"
+              value={capacity}
+              onChange={(e) => setCapacity(Number(e))}
+            />
             <div>
-              <Select data={["Available", "Unavailable"]} label="Status" />
+              <Select
+                data={statusOptions}
+                label="Status"
+                value={status}
+                onChange={(value) => setStatus(value || "Unavailable")}
+              />
             </div>
-          </div> */}
+          </div>
           <button
             type="submit"
             className="p-3 bg-[var(--primary)] cursor-pointer text-white rounded"
+            disabled={isCreating}
           >
             Submit
           </button>

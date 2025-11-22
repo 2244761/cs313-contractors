@@ -174,7 +174,7 @@ export const ReservationList: React.FC = () => {
             onChange={(value) => setSearchUser(value)}
             value={searchUser}
           />
-          <Filter onClick={() => onSort("full_name")} />,
+          <Filter onClick={() => onSort("full_name")} />
         </div>
       ),
     },
